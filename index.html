@@ -675,6 +675,51 @@ table.grid tr.missing td { background: var(--pass-bg); color: var(--pass); }
   .radar { overflow: visible; }
   .radar .axis-label { font-size: 17px; } .radar .axis-val { font-size: 15px; }
 }
+.shows { margin: 0; font-size: .95rem; line-height: 1.5; }
+table.grid th.calc { font-family: var(--font-body); font-style: italic; font-weight: 400; color: var(--muted); }
+.uses { display: flex; flex-wrap: wrap; gap: 6px; }
+.use { font-family: var(--font-mono); font-size: .76rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+.use b { color: var(--room); margin-right: 2px; }
+/* tier guide */
+.tiersview { display: grid; gap: 14px; }
+.tiers-intro { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px 20px; flex-wrap: wrap; }
+.tiers-intro h2 { font-family: var(--font-display); font-size: 1.15rem; margin: 0 0 2px; }
+.tiers-intro p { margin: 0; }
+.tier-card { display: grid; grid-template-columns: 74px minmax(0, 1fr); overflow: hidden; }
+@media (max-width: 600px) { .tier-card { grid-template-columns: minmax(0, 1fr); } }
+.tier-num { background: var(--panel-2); border-right: 1px solid var(--line); display: grid; place-content: center; text-align: center; gap: 2px; padding: 12px; }
+@media (max-width: 600px) { .tier-num { border-right: 0; border-bottom: 1px solid var(--line); display: flex; justify-content: flex-start; align-items: baseline; gap: 10px; } }
+.tier-num b { font-family: var(--font-display); font-size: 2.1rem; line-height: 1; }
+.tier-num span { font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.tier-card.here { border: 2px solid var(--focus); }
+.tier-card.here .tier-num { background: color-mix(in srgb, var(--focus) 16%, var(--panel)); }
+.tier-card.locked .tier-main { opacity: .62; }
+.tier-main { padding: 12px 16px 14px; display: grid; gap: 10px; min-width: 0; }
+.tier-head { display: flex; justify-content: space-between; align-items: center; gap: 6px 12px; flex-wrap: wrap; }
+.tier-head h3 { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
+.tier-head p { margin: 2px 0 0; color: var(--muted); font-size: .88rem; }
+.state { font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; white-space: nowrap; border: 1px solid var(--line-strong); color: var(--muted); }
+.state.here { background: var(--focus); border-color: var(--focus); color: var(--panel); }
+.state.done { background: var(--pass-bg); border-color: transparent; color: var(--pass); }
+.state.open { color: var(--ink); }
+.tier-rooms { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: .8rem; color: var(--muted); }
+.room-tag { color: var(--room); background: color-mix(in srgb, var(--room) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--room) 35%, var(--line)); border-radius: 999px; padding: 1px 9px; font-weight: 700; font-size: .76rem; }
+.skill-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.skill { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; display: grid; gap: 6px; align-content: start; min-width: 0; background: var(--panel); }
+.skill-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.skill-top b { font-size: .92rem; }
+.skill-top .acc { font-size: .76rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.skill-top .acc.weak { color: var(--fail); font-weight: 700; }
+.skill p { margin: 0; font-size: .84rem; color: var(--muted); line-height: 1.45; }
+.skill code { font-family: var(--font-mono); font-size: .76rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; display: block; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+.skill .btn.small { justify-self: start; }
+/* dismiss */
+.ii-li { position: relative; }
+.inbox-item { padding-right: 38px; }
+.ii-dismiss { position: absolute; top: 6px; right: 6px; z-index: 1; width: 26px; height: 26px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--muted); font-size: 1.15rem; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.ii-dismiss:hover { color: var(--fail); border-color: var(--line-strong); background: var(--panel-2); }
+.ii-head .ii-meta { margin-right: 2px; }
+.calm .inbox-item:not(.fresh), .calm .plan .bar-fg, .calm .plan .badge, .calm .rc-bar span { animation: none; }
 /* motion */
 @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } }
 @keyframes grow { from { transform: scaleX(0); } }
@@ -723,6 +768,7 @@ table.grid tr.missing td { background: var(--pass-bg); color: var(--pass); }
         <option value="1">Tier 1 only</option><option value="2">Tier 2 only</option><option value="3">Tier 3 only</option><option value="4">Tier 4 only</option><option value="5">Tier 5 only</option>
       </select>
       <button class="btn" id="btnHospital" type="button" title="Generate a new hospital database">New hospital</button>
+      <button class="btn" id="btnTiers" type="button">Tiers</button>
       <button class="btn" id="btnTheme" type="button">Reading room</button>
     </div>
   </header>
@@ -1006,6 +1052,52 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       hint: '"Younger than" means strictly less than.' };
   } });
 
+  add({ id: 'mod-newest', tier: 1, skill: 'order', gen(c) {
+    const m = c.mod(MODS);
+    return { room: m, prompt: `List every ${m} unit's name and install_date, newest first.`, ordered: true,
+      sql: `SELECT name, install_date\nFROM machines\nWHERE modality = '${m}'\nORDER BY install_date DESC;`,
+      broken: `SELECT name, install_date\nFROM machines\nWHERE modality = '${m}'\nORDER BY install_date;`,
+      hint: 'ORDER BY sorts oldest date first. Add DESC to put the newest first.' };
+  } });
+  add({ id: 'mod-maker', tier: 1, skill: 'distinct', gen(c) {
+    const m = c.mod(MODS);
+    return { room: m, prompt: `Which manufacturers make the department's ${m} units? List each manufacturer once, alphabetically.`, ordered: true,
+      sql: `SELECT DISTINCT manufacturer\nFROM machines\nWHERE modality = '${m}'\nORDER BY manufacturer;`,
+      broken: `SELECT manufacturer\nFROM machines\nWHERE modality = '${m}'\nORDER BY manufacturer;`,
+      hint: 'Two units from the same manufacturer give two rows. SELECT DISTINCT keeps one of each.' };
+  } });
+  add({ id: 'name-like', tier: 1, skill: 'like', gen(c) {
+    const m = c.mod(MODS), code = MOD_INFO[m].code;
+    return { room: m, prompt: `${m} unit names start with '${code}-'. Using the name column, not modality, list the name and room of every ${m} unit.`,
+      sql: `SELECT name, room\nFROM machines\nWHERE name LIKE '${code}-%';`,
+      broken: `SELECT name, room\nFROM machines\nWHERE name LIKE '${code}-';`,
+      hint: `Without %, LIKE '${code}-' only matches the exact text '${code}-'. Add % to mean "followed by anything".` };
+  } });
+  add({ id: 'proto-in', tier: 1, skill: 'in', gen(c) {
+    const m = c.mod(MODS);
+    const ps = c.shuffle(c.q(`SELECT id, name FROM protocols WHERE modality = '${m}'`)).slice(0, 2).sort((a, b) => a.id - b.id);
+    const age = c.pick([75, 80, 85]);
+    return { room: m, prompt: `List exams on protocol ${ps[0].id} ("${ps[0].name}") or protocol ${ps[1].id} ("${ps[1].name}") for patients ${age} or older: exam id, protocol_id, and patient_age.`,
+      sql: `SELECT id, protocol_id, patient_age\nFROM exams\nWHERE protocol_id IN (${ps[0].id}, ${ps[1].id})\n  AND patient_age >= ${age};`,
+      broken: `SELECT id, protocol_id, patient_age\nFROM exams\nWHERE protocol_id = ${ps[0].id} OR protocol_id = ${ps[1].id}\n  AND patient_age >= ${age};`,
+      hint: 'AND runs before OR, so the age filter only applies to the second protocol. IN (a, b) avoids the problem.' };
+  } });
+  add({ id: 'qc-null', tier: 1, skill: 'null', gen(c) {
+    const m = c.pickR(c.q("SELECT m.id, m.name, m.modality FROM machines m WHERE EXISTS (SELECT 1 FROM qc_tests q WHERE q.machine_id = m.id AND q.measured_value IS NULL)"));
+    return { room: m.modality, prompt: `Which QC tests on ${m.name} (machine_id ${m.id}) have no measured_value? Show id, test_name, and test_date.`,
+      sql: `SELECT id, test_name, test_date\nFROM qc_tests\nWHERE machine_id = ${m.id}\n  AND measured_value IS NULL;`,
+      broken: `SELECT id, test_name, test_date\nFROM qc_tests\nWHERE machine_id = ${m.id}\n  AND measured_value = NULL;`,
+      hint: 'Nothing equals NULL, so = NULL never matches. Use IS NULL.' };
+  } });
+  add({ id: 'qc-history', tier: 1, skill: 'order', gen(c) {
+    const m = c.pickR(c.q("SELECT m.id, m.name, m.modality FROM machines m WHERE (SELECT COUNT(*) FROM qc_tests q WHERE q.machine_id = m.id) >= 3"));
+    const n = c.int(4, 6);
+    return { room: m.modality, prompt: `Show the ${n} most recent QC tests on ${m.name} (machine_id ${m.id}): test_name, test_date, and result. Newest first; break date ties by test_name.`, ordered: true,
+      sql: `SELECT test_name, test_date, result\nFROM qc_tests\nWHERE machine_id = ${m.id}\nORDER BY test_date DESC, test_name\nLIMIT ${n};`,
+      broken: `SELECT test_name, test_date, result\nFROM qc_tests\nWHERE machine_id = ${m.id}\nORDER BY test_date, test_name\nLIMIT ${n};`,
+      hint: 'Sort by test_date DESC so the newest rows come first, then LIMIT keeps the top few.' };
+  } });
+
   // ===== Tier 2 =====
   add({ id: 'fails-month', tier: 2, skill: 'count', gen(c) {
     const m = c.pick(c.monthsWithData());
@@ -1206,7 +1298,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     return { room: 'Department', prompt: 'For each modality with dose data, show the single highest-dose exam: modality, exam id, and dose_mgy.',
       sql: "SELECT modality, id, dose_mgy\nFROM (SELECT m.modality, e.id, e.dose_mgy,\n             ROW_NUMBER() OVER (PARTITION BY m.modality\n                                ORDER BY e.dose_mgy DESC) AS rn\n      FROM exams e\n      JOIN machines m ON m.id = e.machine_id\n      WHERE e.dose_mgy IS NOT NULL)\nWHERE rn = 1;",
       broken: "SELECT modality, id, dose_mgy\nFROM (SELECT m.modality, e.id, e.dose_mgy,\n             ROW_NUMBER() OVER (PARTITION BY m.modality\n                                ORDER BY e.dose_mgy) AS rn\n      FROM exams e\n      JOIN machines m ON m.id = e.machine_id\n      WHERE e.dose_mgy IS NOT NULL)\nWHERE rn = 1;",
-      hint: 'ROW_NUMBER() OVER (PARTITION BY modality ORDER BY dose DESC) numbers each modality separately. Keep row 1.' };
+      hint: 'ROW_NUMBER() OVER (PARTITION BY modality ORDER BY dose DESC) numbers each modality separately. Keep row 1.', headers: ['machines.modality', 'exams.id', 'exams.dose_mgy'] };
   } });
   add({ id: 'cte-fails', tier: 5, skill: 'cte', gen() {
     return { room: 'Department', prompt: 'Among machines with at least one failed QC test, which have more failures than the average for that group? Show machine name and failure count.',
@@ -1263,7 +1355,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   // ---------- rooms each template can appear in ----------
   const ROOM_SETS = {
     dept: 'oldest wing two-mods oos staff-role manufacturers no-modality fails-month result-counts fail-having qc-range monthly overdue distinct-techs null-measured no-qc exam-day busy-techs maker-fails no-qc-staff fail-rate top-dose cte-fails',
-    mods: 'mod-list first-last fail-names who-tested exam-count-machine tech-qc failed-test-machines running lag p-count-fail p-count-null p-distinct p-having p-max',
+    mods: 'mod-list mod-newest mod-maker name-like proto-in qc-null qc-history first-last fail-names who-tested exam-count-machine tech-qc failed-test-machines running lag p-count-fail p-count-null p-distinct p-having p-max',
     dose: 'high-dose young proto-avg proto-stats proto-avg-names above-drl drl-case above-proto-avg never-imaged tech-vs-avg pct-of-total',
   };
   const ROOMS_OF = { 'rank-busy': ['CT', 'Radiography', 'MRI', 'Mammo'] };
@@ -1327,7 +1419,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       if (!typePref) {
         const x = r();
         if (g.broken && x < 0.3) type = 'fix';
-        else if (x > 0.78 && expected.rows.length && expected.rows.length <= 12) type = 'match';
+        else if (x > 0.78 && expected.rows.length && expected.rows.length <= 12 && !(expected.rows.length === 1 && expected.columns.length === 1)) type = 'match';
       }
       if (type === 'fix') {
         if (!g.broken) type = 'write';
@@ -1337,9 +1429,84 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         }
       }
       if (type === 'match' && !(expected.rows.length && expected.rows.length <= 12)) type = 'write';
-      return { template, type, room: g.room, prompt: g.prompt, sql: g.sql, broken: g.broken, ordered: !!g.ordered, expected, hint: g.hint };
+      if (type === 'match' && expected.rows.length === 1 && expected.columns.length === 1) type = 'write';
+      return { template, type, room: g.room, prompt: g.prompt, sql: g.sql, broken: g.broken, ordered: !!g.ordered, expected, hint: g.hint,
+        headers: type === 'match' ? describeColumns(g.sql, expected.columns, g.headers) : null, uses: type === 'match' ? usedColumns(g.sql) : null };
     }
     return null;
+  }
+
+  // ---------- describing a result for Match it ----------
+  const TABLE_COLS = {};
+  SCHEMA.replace(/CREATE TABLE (\w+) \(([^)]*)\)/g, (_, t, body) => { TABLE_COLS[t] = body.split(',').map((x) => x.trim().split(/\s+/)[0]); return ''; });
+  function aliasMap(sql) {
+    const map = {}; const re = /\b(?:FROM|JOIN)\s+(\w+)(?:\s+(?!ON\b|WHERE\b|JOIN\b|GROUP\b|ORDER\b|LEFT\b|INNER\b)(\w+))?/gi; let m;
+    while ((m = re.exec(sql))) if (TABLE_COLS[m[1]]) { map[m[1]] = m[1]; if (m[2]) map[m[2]] = m[1]; }
+    return map;
+  }
+  function selectItems(sql) {
+    const body = sql.replace(/^\s*WITH[\s\S]*?\)\s*(?=SELECT)/i, '');
+    const start = body.search(/\bSELECT\b/i) + 6;
+    let depth = 0, cur = '', items = [];
+    for (let i = start; i < body.length; i++) {
+      const ch = body[i];
+      if (ch === '(') depth++; if (ch === ')') depth--;
+      if (depth === 0 && /^\s*FROM\b/i.test(body.slice(i))) { items.push(cur); break; }
+      if (depth === 0 && ch === ',') { items.push(cur); cur = ''; } else cur += ch;
+    }
+    return items.map((x) => x.replace(/^\s*DISTINCT\s+/i, '').trim());
+  }
+  const PLAIN = { n: 'count', fails: 'number of failures', rnk: 'rank (ties share)', running: 'running total', change: 'change from previous test', pct: 'percent of total', label: "label ('above DRL' or 'within DRL')", month: 'month (YYYY-MM)' };
+  function plainCalc(expr) {
+    const e = expr.replace(/\s+/g, ' ').replace(/\b[a-z_]\w*\./gi, '');
+    let m;
+    if (/^COUNT\(\s*\*\s*\)$/i.test(e) || /^COUNT\(\s*id\s*\)$/i.test(e)) return 'count';
+    if ((m = e.match(/^COUNT\(DISTINCT (\w+)\)$/i))) return `number of different ${m[1]} values`;
+    if ((m = e.match(/^ROUND\(AVG\((\w+)\), ?(\d)\)$/i))) return `average ${m[1]}, ${m[2]} decimal`;
+    if ((m = e.match(/^ROUND\((\w+), ?(\d)\)$/i))) return `average ${m[1] === 'avg_dose' ? 'dose_mgy' : m[1]}, ${m[2]} decimal`;
+    if ((m = e.match(/^AVG\((\w+)\)$/i))) return `average ${m[1]}`;
+    if ((m = e.match(/^MAX\((\w+)\)$/i))) return /date/.test(m[1]) ? `latest ${m[1]}` : `highest ${m[1]}`;
+    if ((m = e.match(/^MIN\((\w+)\)$/i))) return /date/.test(m[1]) ? `earliest ${m[1]}` : `lowest ${m[1]}`;
+    if (/FAIL/i.test(e) && /100/.test(e)) return 'percent failed, 1 decimal';
+    if (/OVER/i.test(e)) return 'calculated value';
+    return 'calculated value';
+  }
+  // returns [{ text, calc }] — calc true for computed columns
+  function describeColumns(sql, columns, overrides) {
+    const items = selectItems(sql), am = aliasMap(sql);
+    const tables = Object.values(am);
+    return columns.map((col, i) => {
+      if (overrides && overrides[i]) return { text: overrides[i], calc: !/^\w+\.\w+$/.test(overrides[i]) };
+      const item = items[i] || col;
+      const asM = item.match(/\bAS\s+(\w+)\s*$/i);
+      const core = asM ? item.slice(0, asM.index).trim() : item;
+      if (asM && PLAIN[asM[1]]) return { text: PLAIN[asM[1]], calc: true };
+      let m;
+      if ((m = core.match(/^(\w+)\.(\w+)$/)) && am[m[1]]) return { text: `${am[m[1]]}.${m[2]}`, calc: false };
+      if (m && PLAIN[m[2]]) return { text: PLAIN[m[2]], calc: true };
+      if (/^\w+$/.test(core)) {
+        const owners = [...new Set(tables)].filter((t) => TABLE_COLS[t].includes(core));
+        if (owners.length >= 1) return { text: `${owners[0]}.${core}`, calc: false };
+        if (PLAIN[core]) return { text: PLAIN[core], calc: true };
+        return { text: core, calc: false };
+      }
+      if ((m = core.match(/strftime\('%Y-%m'/i))) return { text: PLAIN.month, calc: true };
+      return { text: plainCalc(core), calc: true };
+    });
+  }
+  function usedColumns(sql) {
+    const am = aliasMap(sql), out = {};
+    const hasAlias = Object.keys(am).some((k) => am[k] !== k);
+    [...new Set(Object.values(am))].forEach((t) => {
+      const aliases = Object.keys(am).filter((k) => am[k] === t && k !== t);
+      const cols = TABLE_COLS[t].filter((c) => {
+        if (aliases.length && new RegExp(`\\b(?:${aliases.join('|')})\\.${c}\\b`).test(sql)) return true;
+        if (!hasAlias || Object.values(am).filter((x) => x !== t).every((o) => !TABLE_COLS[o].includes(c))) return new RegExp(`(?<![.\\w])${c}\\b`).test(sql.replace(/'[^']*'/g, ''));
+        return false;
+      });
+      out[t] = cols;
+    });
+    return out;
   }
 
   function checkPredict(ticket, input) {
@@ -1356,7 +1523,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     window: 'Window functions', cte: 'CTEs (WITH)',
   };
 
-  const api = { ROOMS: ['CT', 'MRI', 'Mammo', 'Fluoro', 'Radiography', 'Department'], mulberry32, generate, runOn, makeTicket, compare, checkPredict, TEMPLATES: T, SKILLS, TABLE_NOTES, MODS, rowKey };
+  const api = { describeColumns, usedColumns, ROOMS: ['CT', 'MRI', 'Mammo', 'Fluoro', 'Radiography', 'Department'], mulberry32, generate, runOn, makeTicket, compare, checkPredict, TEMPLATES: T, SKILLS, TABLE_NOTES, MODS, rowKey };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1446,6 +1613,9 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       if (!pool.length) pool = T.filter((t) => t.tier <= tier);
     }
     if (!pool.length) return null;
+    const avoid = S.avoid || [];
+    const varied = pool.filter((t) => !avoid.includes(t.skill));
+    if (varied.length) pool = varied;
     const notRecent = pool.filter((t) => !last.includes(t.id) && !S.inbox.some((s) => s.tid === t.id));
     const p = notRecent.length ? notRecent : pool;
     return p[Math.floor(Math.random() * p.length)];
@@ -1465,7 +1635,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       const seed = Math.floor(Math.random() * 1e9);
       const k = E.makeTicket(SQL, bytes, t, seed, null, r);
       if (!k) continue;
-      return { id: seed.toString(36) + i, tid: t.id, seed, room: r, type: k.type, tier: t.tier, skill: t.skill, prompt: k.type === 'match' ? 'Produce a target result table.' : k.prompt, from: senderFor(r).id };
+      return { id: seed.toString(36) + i, tid: t.id, seed, room: r, type: k.type, tier: t.tier, skill: t.skill, prompt: k.prompt, from: senderFor(r).id };
     }
     return null;
   }
@@ -1474,10 +1644,14 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     openRooms().forEach((r) => { if (!S.inbox.some((s) => s.room === r)) { const sp = makeSpec(r); if (sp) S.inbox.push(sp); } });
     let guard = 0;
     while (S.inbox.length < 8 && guard++ < 20) {
-      const sp = makeSpec();
+      const sp = makeSpec(roomWithSpace());
       if (sp && S.inbox.filter((s) => s.room === sp.room).length < 3) S.inbox.push(sp);
     }
     save();
+  }
+  function roomWithSpace() {
+    const rs = openRooms().filter((r) => S.inbox.filter((s) => s.room === r).length < 3);
+    return rs.length ? rs[Math.floor(Math.random() * rs.length)] : undefined;
   }
   function arrive() {
     for (let i = 0; i < 6; i++) {
@@ -1485,6 +1659,22 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       if (sp && S.inbox.filter((s) => s.room === sp.room).length < 3) { S.inbox.push(sp); freshIds.add(sp.id); save(); return sp; }
     }
     return null;
+  }
+  function dismissSpec(id) {
+    const spec = S.inbox.find((s) => s.id === id);
+    if (!spec) return;
+    S.avoid = [...(S.avoid || []).filter((k) => k !== spec.skill), spec.skill].slice(-3);
+    last = [spec.tid, ...last].slice(0, 5);
+    S.inbox = S.inbox.filter((s) => s.id !== id);
+    let sp = null;
+    for (let i = 0; i < 10 && !sp; i++) {
+      const c = makeSpec(roomWithSpace());
+      if (c && c.skill !== spec.skill && S.inbox.filter((s) => s.room === c.room).length < 3) sp = c;
+    }
+    if (sp) { S.inbox.push(sp); freshIds.add(sp.id); }
+    fillInbox();
+    renderMap(true);
+    toast(sp ? `Dismissed. New ${E.SKILLS[sp.skill]} ticket in ${ROOM_LABEL[sp.room]}.` : 'Ticket dismissed.');
   }
   function closeSpec(spec, announce) {
     S.inbox = S.inbox.filter((s) => s.id !== spec.id);
@@ -1518,7 +1708,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   function tableHTML(columns, rows, marks, limit = 300) {
     if (!columns.length) return '<div class="empty-res">No result table.</div>';
     const shown = rows.slice(0, limit);
-    let h = '<div class="table-wrap"><table class="grid"><thead><tr>' + columns.map((c) => `<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>';
+    let h = '<div class="table-wrap"><table class="grid"><thead><tr>' + columns.map((c) => (c && typeof c === 'object' ? `<th class="${c.calc ? 'calc' : ''}">${esc(c.text)}</th>` : `<th>${esc(c)}</th>`)).join('') + '</tr></thead><tbody>';
     shown.forEach((r, i) => {
       const cls = marks && marks[i] && marks[i] !== 'ok' ? ` class="${marks[i]}"` : '';
       h += `<tr${cls}>` + r.map((v) => v === null ? '<td class="null">NULL</td>' : `<td>${esc(typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1e4) / 1e4 : v)}</td>`).join('') + '</tr>';
@@ -1627,15 +1817,15 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   function inboxList() {
     const order = [...S.inbox].sort((a, b) => ROOM_TIER[a.room] - ROOM_TIER[b.room] || a.tier - b.tier);
     if (!order.length) return '<p class="muted">No open tickets. New ones arrive as you close others.</p>';
-    return '<ul class="inbox-list">' + order.map((sp, i) => `<li><button type="button" class="inbox-item${freshIds.has(sp.id) ? ' fresh' : ''}" style="${roomStyle(sp.room)}; --i: ${i}" data-spec="${sp.id}">
+    return '<ul class="inbox-list">' + order.map((sp, i) => `<li class="ii-li"><button type="button" class="ii-dismiss" data-dismiss="${sp.id}" aria-label="Dismiss ${ROOM_LABEL[sp.room]} ${TYPE_LABEL[sp.type]} ticket" title="Dismiss and get a different kind of ticket">×</button><button type="button" class="inbox-item${freshIds.has(sp.id) ? ' fresh' : ''}" style="${roomStyle(sp.room)}; --i: ${i}" data-spec="${sp.id}">
         <span class="ii-head"><span class="ii-room"><span class="room-dot"></span>${ROOM_LABEL[sp.room]}${freshIds.has(sp.id) ? '<span class="new-tag">New</span>' : ''}</span><span class="ii-meta">${TYPE_LABEL[sp.type]} · T${sp.tier}</span></span>
         <span class="ii-prompt">${esc(sp.prompt)}</span></button></li>`).join('') + '</ul>';
   }
-  function renderMap() {
+  function renderMap(quiet) {
     view = 'map'; cm = null;
     const weak = weakSkills();
     $('#app').innerHTML = `
-      <div class="mapview">
+      <div class="mapview${quiet === true ? ' calm' : ''}">
         <section class="panel plan-panel">
           <div class="plan-head"><h2>Imaging department</h2><span class="muted">Pick a room, or keep going through the inbox.</span><button class="btn" type="button" id="bStats">Your stats</button></div>
           <div class="plan-wrap">${planSVG()}</div>
@@ -1653,10 +1843,79 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       el.addEventListener('click', () => openRoom(el.dataset.room));
       el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRoom(el.dataset.room); } });
     });
+    $('#app').querySelectorAll('[data-dismiss]').forEach((el) => el.addEventListener('click', () => dismissSpec(el.dataset.dismiss)));
     $('#app').querySelectorAll('[data-spec]').forEach((el) => el.addEventListener('click', () => openSpec(S.inbox.find((s) => s.id === el.dataset.spec))));
     $('#bGo').onclick = () => nextSpec(null);
     $('#bStats').onclick = renderStats;
     freshIds.clear();
+    if (quiet !== true) window.scrollTo({ top: 0 });
+  }
+
+  // ---------- tier guide ----------
+  const TIERS = [
+    { n: 1, name: 'Single table', blurb: 'Pull rows from one table, filter them, and sort them.' },
+    { n: 2, name: 'Summarizing', blurb: 'Turn many rows into counts, averages, and per-group totals.' },
+    { n: 3, name: 'Joins', blurb: 'Combine tables, like QC tests with the machines they ran on.' },
+    { n: 4, name: 'Analysis', blurb: 'Compare values across tables, build labels, and nest queries.' },
+    { n: 5, name: 'Expert', blurb: 'Rank, run totals, compare to the previous row, and name steps with WITH.' },
+  ];
+  const SKILL_INFO = {
+    where: ['Keeps only the rows that match a condition. Combine conditions with AND and OR.', "SELECT name FROM machines\nWHERE modality = 'CT';"],
+    order: ['Sorts the result. Add DESC for largest or newest first. LIMIT keeps the first few rows.', 'ORDER BY install_date DESC\nLIMIT 3'],
+    like: ['Matches text patterns. % stands for any run of characters.', "WHERE room LIKE 'ED-%'"],
+    in: ['Matches any value in a list, a shorter way to write several ORs.', "WHERE modality IN ('CT', 'MRI')"],
+    null: ['NULL means "no value". Test for it with IS NULL or IS NOT NULL, never = NULL.', 'WHERE measured_value IS NULL'],
+    distinct: ['Removes duplicate rows so each value appears once.', 'SELECT DISTINCT manufacturer\nFROM machines'],
+    count: ['Counts rows. COUNT(DISTINCT col) counts unique values instead.', "SELECT COUNT(*) FROM qc_tests\nWHERE result = 'FAIL'"],
+    aggregate: ['AVG, MIN, MAX, and SUM squash a column down to one value. ROUND trims decimals.', 'SELECT ROUND(AVG(dose_mgy), 1)\nFROM exams'],
+    groupby: ['Splits rows into groups so COUNT, AVG, and the rest run once per group.', 'SELECT result, COUNT(*)\nFROM qc_tests\nGROUP BY result'],
+    having: ['Filters groups after GROUP BY. WHERE filters rows before grouping.', 'GROUP BY machine_id\nHAVING COUNT(*) > 3'],
+    date: ['Dates are YYYY-MM-DD text, so they sort and compare correctly. strftime pulls out parts.', "WHERE test_date BETWEEN\n  '2026-03-01' AND '2026-03-31'"],
+    join: ['Pairs rows from two tables using a matching column in ON.', 'FROM qc_tests q\nJOIN machines m ON m.id = q.machine_id'],
+    leftjoin: ['Like JOIN, but keeps every row from the left table even when nothing matches.', 'FROM machines m\nLEFT JOIN exams e ON e.machine_id = m.id'],
+    join3: ['Chains several JOINs to pull columns from three or more tables.', 'JOIN machines m ON m.id = e.machine_id\nJOIN protocols p ON p.id = e.protocol_id'],
+    compare: ["Compares a value to one from another table, like an exam's dose to its protocol's DRL.", 'WHERE e.dose_mgy > p.drl_mgy'],
+    case: ['Builds a value with if/then logic, often to label or count rows by category.', "CASE WHEN dose_mgy > drl_mgy\n  THEN 'above' ELSE 'within' END"],
+    subquery: ['A query inside a query, used as a value or a list.', 'WHERE id IN (SELECT machine_id\n  FROM qc_tests)'],
+    window: ['Calculates across related rows without collapsing them: ranks, running totals, previous values.', 'RANK() OVER (ORDER BY COUNT(*) DESC)'],
+    cte: ['WITH names a temporary result you can use later in the query, even twice.', 'WITH f AS (SELECT ...)\nSELECT * FROM f'],
+  };
+  function renderTiers() {
+    view = 'tiers'; cm = null;
+    const cur = S.tierMode === 'auto' ? S.tier : Number(S.tierMode);
+    const cards = TIERS.map((T) => {
+      const keys = Object.keys(E.SKILLS).filter((k) => skillTier(k) === T.n);
+      const rooms = E.ROOMS.filter((r) => ROOM_TIER[r] === T.n);
+      const open = S.tierMode !== 'auto' || T.n <= S.maxTier;
+      const state = T.n === cur ? ['here', S.tierMode === 'auto' ? "You're here" : 'Practicing this tier']
+        : S.tierMode === 'auto' && T.n < cur ? ['done', 'Passed'] : open ? ['open', 'Unlocked'] : ['locked', `Reach tier ${T.n} to unlock`];
+      const skills = keys.map((k) => {
+        const v = S.skills[k], p = pct(v), weak = v && v.n >= 2 && v.ok / v.n < 0.6;
+        const [desc, ex] = SKILL_INFO[k] || ['', ''];
+        return `<div class="skill"><div class="skill-top"><b>${esc(E.SKILLS[k])}</b><span class="acc${weak ? ' weak' : ''}">${p === null ? 'not tried' : `${p}% first-try`}</span></div>
+          <p>${esc(desc)}</p><code>${esc(ex)}</code>
+          ${open ? `<button class="btn small" type="button" data-practice="${k}">Practice</button>` : ''}</div>`;
+      }).join('');
+      return `<section class="panel tier-card ${state[0]}" aria-label="Tier ${T.n}">
+        <div class="tier-num"><span>Tier</span><b>${T.n}</b></div>
+        <div class="tier-main">
+          <div class="tier-head"><div><h3>${T.name}</h3><p>${T.blurb}</p></div><span class="state ${state[0]}">${state[1]}</span></div>
+          ${rooms.length ? `<div class="tier-rooms">${T.n === 1 ? 'Open from the start:' : 'Unlocks:'} ${rooms.map((r) => `<span class="room-tag" style="${roomStyle(r)}">${ROOM_LABEL[r]}</span>`).join('')}</div>` : ''}
+          <div class="skill-list">${skills}</div>
+        </div></section>`;
+    }).join('');
+    const how = S.tierMode === 'auto'
+      ? (S.tier >= 5 ? "You're at the top tier." : `Get 4 of your last 5 tier ${S.tier} tickets right on the first try to move up. Missing most of them moves you down a tier.`)
+      : `You're locked to tier ${S.tierMode}. Switch Practice to Adaptive to move between tiers.`;
+    $('#app').innerHTML = `
+      <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap4">← Department map</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Tier guide</span></nav>
+      <div class="tiersview">
+        <section class="panel tiers-intro"><div><h2>What each tier covers</h2><p class="muted">${how}</p></div><button class="btn" type="button" id="bStats4">Your stats</button></section>
+        ${cards}
+      </div>`;
+    $('#bMap4').onclick = renderMap;
+    $('#bStats4').onclick = renderStats;
+    $('#app').querySelectorAll('[data-practice]').forEach((b) => b.addEventListener('click', () => { focus = b.dataset.practice; nextSpec(null); }));
     window.scrollTo({ top: 0 });
   }
 
@@ -1815,7 +2074,14 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     const s = t.sender;
     const roleTxt = s.role === 'Technologist' ? `${ROOM_LABEL[s.modality] || s.modality} technologist` : s.role.toLowerCase();
     let extra = '';
-    if (t.type === 'match') extra = `<div class="answer-box"><span class="label">Target result · ${t.expected.rows.length} row${t.expected.rows.length === 1 ? '' : 's'}${t.ordered ? ' · order matters' : ''}</span>${tableHTML(t.expected.columns.map((_, i) => 'col ' + (i + 1)), t.expected.rows)}<span class="from">Uses: ${tablesIn(t.sql).join(', ')}. Column names don't need to match.</span></div>`;
+    if (t.type === 'match') {
+      const uses = Object.entries(t.uses || {}).map(([tb, cols]) => `<span class="use"><b>${tb}</b>${cols.length ? ' ' + cols.map(esc).join(', ') : ''}</span>`).join('');
+      const anyCalc = (t.headers || []).some((h) => h.calc);
+      extra = `<div class="answer-box"><span class="label">What it shows</span><p class="shows">${esc(t.prompt)}</p></div>
+        <div class="answer-box"><span class="label">Target result · ${t.expected.rows.length} row${t.expected.rows.length === 1 ? '' : 's'}${t.ordered ? ' · order matters' : ''}</span>${tableHTML(t.headers || t.expected.columns, t.expected.rows)}
+        <span class="from">${anyCalc ? 'Italic headers are calculated values. ' : ''}Your column names don't need to match.</span></div>
+        <div class="answer-box"><span class="label">Tables and columns involved</span><div class="uses">${uses}</div></div>`;
+    }
     if (t.type === 'fix') extra = `<div class="from">The query is loaded in the editor. Run it, find the bug, fix it.</div>`;
     if (t.type === 'predict') extra = `<div class="answer-box"><span class="label">Table: sample</span>${tableHTML(t.sample.columns, t.sample.rows)}</div><div class="answer-box"><span class="label">Query</span><pre class="code">${esc(t.query)}</pre></div>`;
     const promptTxt = t.type === 'fix' ? `I tried to answer this and my query isn't right: "${esc(t.prompt)}"`
@@ -1961,6 +2227,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   }
 
   // ---------- controls ----------
+  $('#btnTiers').onclick = () => { if (SQL) { focus = null; renderTiers(); } };
   $('#tierMode').onchange = (e) => { S.tierMode = e.target.value; S.inbox = []; save(); updateStats(); if (SQL) { fillInbox(); renderMap(); } };
   let confirmTimer = null;
   $('#btnHospital').onclick = (e) => {
