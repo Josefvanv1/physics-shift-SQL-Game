@@ -1,0 +1,1980 @@
+<title>Physics Shift</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* BASICS */
+
+.CodeMirror {
+  /* Set height, width, borders, and global font properties here */
+  font-family: monospace;
+  height: 300px;
+  color: black;
+  direction: ltr;
+}
+
+/* PADDING */
+
+.CodeMirror-lines {
+  padding: 4px 0; /* Vertical padding around content */
+}
+.CodeMirror pre.CodeMirror-line,
+.CodeMirror pre.CodeMirror-line-like {
+  padding: 0 4px; /* Horizontal padding of content */
+}
+
+.CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+  background-color: white; /* The little square between H and V scrollbars */
+}
+
+/* GUTTER */
+
+.CodeMirror-gutters {
+  border-right: 1px solid #ddd;
+  background-color: #f7f7f7;
+  white-space: nowrap;
+}
+.CodeMirror-linenumbers {}
+.CodeMirror-linenumber {
+  padding: 0 3px 0 5px;
+  min-width: 20px;
+  text-align: right;
+  color: #999;
+  white-space: nowrap;
+}
+
+.CodeMirror-guttermarker { color: black; }
+.CodeMirror-guttermarker-subtle { color: #999; }
+
+/* CURSOR */
+
+.CodeMirror-cursor {
+  border-left: 1px solid black;
+  border-right: none;
+  width: 0;
+}
+/* Shown when moving in bi-directional text */
+.CodeMirror div.CodeMirror-secondarycursor {
+  border-left: 1px solid silver;
+}
+.cm-fat-cursor .CodeMirror-cursor {
+  width: auto;
+  border: 0 !important;
+  background: #7e7;
+}
+.cm-fat-cursor div.CodeMirror-cursors {
+  z-index: 1;
+}
+.cm-fat-cursor .CodeMirror-line::selection,
+.cm-fat-cursor .CodeMirror-line > span::selection, 
+.cm-fat-cursor .CodeMirror-line > span > span::selection { background: transparent; }
+.cm-fat-cursor .CodeMirror-line::-moz-selection,
+.cm-fat-cursor .CodeMirror-line > span::-moz-selection,
+.cm-fat-cursor .CodeMirror-line > span > span::-moz-selection { background: transparent; }
+.cm-fat-cursor { caret-color: transparent; }
+@-moz-keyframes blink {
+  0% {}
+  50% { background-color: transparent; }
+  100% {}
+}
+@-webkit-keyframes blink {
+  0% {}
+  50% { background-color: transparent; }
+  100% {}
+}
+@keyframes blink {
+  0% {}
+  50% { background-color: transparent; }
+  100% {}
+}
+
+/* Can style cursor different in overwrite (non-insert) mode */
+.CodeMirror-overwrite .CodeMirror-cursor {}
+
+.cm-tab { display: inline-block; text-decoration: inherit; }
+
+.CodeMirror-rulers {
+  position: absolute;
+  left: 0; right: 0; top: -50px; bottom: 0;
+  overflow: hidden;
+}
+.CodeMirror-ruler {
+  border-left: 1px solid #ccc;
+  top: 0; bottom: 0;
+  position: absolute;
+}
+
+/* DEFAULT THEME */
+
+.cm-s-default .cm-header {color: blue;}
+.cm-s-default .cm-quote {color: #090;}
+.cm-negative {color: #d44;}
+.cm-positive {color: #292;}
+.cm-header, .cm-strong {font-weight: bold;}
+.cm-em {font-style: italic;}
+.cm-link {text-decoration: underline;}
+.cm-strikethrough {text-decoration: line-through;}
+
+.cm-s-default .cm-keyword {color: #708;}
+.cm-s-default .cm-atom {color: #219;}
+.cm-s-default .cm-number {color: #164;}
+.cm-s-default .cm-def {color: #00f;}
+.cm-s-default .cm-variable,
+.cm-s-default .cm-punctuation,
+.cm-s-default .cm-property,
+.cm-s-default .cm-operator {}
+.cm-s-default .cm-variable-2 {color: #05a;}
+.cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
+.cm-s-default .cm-comment {color: #a50;}
+.cm-s-default .cm-string {color: #a11;}
+.cm-s-default .cm-string-2 {color: #f50;}
+.cm-s-default .cm-meta {color: #555;}
+.cm-s-default .cm-qualifier {color: #555;}
+.cm-s-default .cm-builtin {color: #30a;}
+.cm-s-default .cm-bracket {color: #997;}
+.cm-s-default .cm-tag {color: #170;}
+.cm-s-default .cm-attribute {color: #00c;}
+.cm-s-default .cm-hr {color: #999;}
+.cm-s-default .cm-link {color: #00c;}
+
+.cm-s-default .cm-error {color: #f00;}
+.cm-invalidchar {color: #f00;}
+
+.CodeMirror-composing { border-bottom: 2px solid; }
+
+/* Default styles for common addons */
+
+div.CodeMirror span.CodeMirror-matchingbracket {color: #0b0;}
+div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #a22;}
+.CodeMirror-matchingtag { background: rgba(255, 150, 0, .3); }
+.CodeMirror-activeline-background {background: #e8f2ff;}
+
+/* STOP */
+
+/* The rest of this file contains styles related to the mechanics of
+   the editor. You probably shouldn't touch them. */
+
+.CodeMirror {
+  position: relative;
+  overflow: hidden;
+  background: white;
+}
+
+.CodeMirror-scroll {
+  overflow: scroll !important; /* Things will break if this is overridden */
+  /* 50px is the magic margin used to hide the element's real scrollbars */
+  /* See overflow: hidden in .CodeMirror */
+  margin-bottom: -50px; margin-right: -50px;
+  padding-bottom: 50px;
+  height: 100%;
+  outline: none; /* Prevent dragging from highlighting the element */
+  position: relative;
+  z-index: 0;
+}
+.CodeMirror-sizer {
+  position: relative;
+  border-right: 50px solid transparent;
+}
+
+/* The fake, visible scrollbars. Used to force redraw during scrolling
+   before actual scrolling happens, thus preventing shaking and
+   flickering artifacts. */
+.CodeMirror-vscrollbar, .CodeMirror-hscrollbar, .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+  position: absolute;
+  z-index: 6;
+  display: none;
+  outline: none;
+}
+.CodeMirror-vscrollbar {
+  right: 0; top: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+.CodeMirror-hscrollbar {
+  bottom: 0; left: 0;
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+.CodeMirror-scrollbar-filler {
+  right: 0; bottom: 0;
+}
+.CodeMirror-gutter-filler {
+  left: 0; bottom: 0;
+}
+
+.CodeMirror-gutters {
+  position: absolute; left: 0; top: 0;
+  min-height: 100%;
+  z-index: 3;
+}
+.CodeMirror-gutter {
+  white-space: normal;
+  height: 100%;
+  display: inline-block;
+  vertical-align: top;
+  margin-bottom: -50px;
+}
+.CodeMirror-gutter-wrapper {
+  position: absolute;
+  z-index: 4;
+  background: none !important;
+  border: none !important;
+}
+.CodeMirror-gutter-background {
+  position: absolute;
+  top: 0; bottom: 0;
+  z-index: 4;
+}
+.CodeMirror-gutter-elt {
+  position: absolute;
+  cursor: default;
+  z-index: 4;
+}
+.CodeMirror-gutter-wrapper ::selection { background-color: transparent }
+.CodeMirror-gutter-wrapper ::-moz-selection { background-color: transparent }
+
+.CodeMirror-lines {
+  cursor: text;
+  min-height: 1px; /* prevents collapsing before first draw */
+}
+.CodeMirror pre.CodeMirror-line,
+.CodeMirror pre.CodeMirror-line-like {
+  /* Reset some styles that the rest of the page might have set */
+  -moz-border-radius: 0; -webkit-border-radius: 0; border-radius: 0;
+  border-width: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0;
+  white-space: pre;
+  word-wrap: normal;
+  line-height: inherit;
+  color: inherit;
+  z-index: 2;
+  position: relative;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-variant-ligatures: contextual;
+  font-variant-ligatures: contextual;
+}
+.CodeMirror-wrap pre.CodeMirror-line,
+.CodeMirror-wrap pre.CodeMirror-line-like {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: normal;
+}
+
+.CodeMirror-linebackground {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 0;
+}
+
+.CodeMirror-linewidget {
+  position: relative;
+  z-index: 2;
+  padding: 0.1px; /* Force widget margins to stay inside of the container */
+}
+
+.CodeMirror-widget {}
+
+.CodeMirror-rtl pre { direction: rtl; }
+
+.CodeMirror-code {
+  outline: none;
+}
+
+/* Force content-box sizing for the elements where we expect it */
+.CodeMirror-scroll,
+.CodeMirror-sizer,
+.CodeMirror-gutter,
+.CodeMirror-gutters,
+.CodeMirror-linenumber {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+
+.CodeMirror-measure {
+  position: absolute;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.CodeMirror-cursor {
+  position: absolute;
+  pointer-events: none;
+}
+.CodeMirror-measure pre { position: static; }
+
+div.CodeMirror-cursors {
+  visibility: hidden;
+  position: relative;
+  z-index: 3;
+}
+div.CodeMirror-dragcursors {
+  visibility: visible;
+}
+
+.CodeMirror-focused div.CodeMirror-cursors {
+  visibility: visible;
+}
+
+.CodeMirror-selected { background: #d9d9d9; }
+.CodeMirror-focused .CodeMirror-selected { background: #d7d4f0; }
+.CodeMirror-crosshair { cursor: crosshair; }
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: #d7d4f0; }
+.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection { background: #d7d4f0; }
+
+.cm-searching {
+  background-color: #ffa;
+  background-color: rgba(255, 255, 0, .4);
+}
+
+/* Used to force a border model for a node */
+.cm-force-border { padding-right: .1px; }
+
+@media print {
+  /* Hide the cursor when printing */
+  .CodeMirror div.CodeMirror-cursors {
+    visibility: hidden;
+  }
+}
+
+/* See issue #2901 */
+.cm-tab-wrap-hack:after { content: ''; }
+
+/* Help users use markselection to safely style text background */
+span.CodeMirror-selectedtext { background: none; }
+
+.CodeMirror-hints {
+  position: absolute;
+  z-index: 10;
+  overflow: hidden;
+  list-style: none;
+
+  margin: 0;
+  padding: 2px;
+
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  border-radius: 3px;
+  border: 1px solid silver;
+
+  background: white;
+  font-size: 90%;
+  font-family: monospace;
+
+  max-height: 20em;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.CodeMirror-hint {
+  margin: 0;
+  padding: 0 4px;
+  border-radius: 2px;
+  white-space: pre;
+  color: black;
+  cursor: pointer;
+}
+
+li.CodeMirror-hint-active {
+  background: #08f;
+  color: white;
+}
+
+</style>
+<style>
+/* Layout: top bar, then a two-column desk — ticket + schema on the left, query workspace on the right; stacks on phones */
+:root {
+  --bg: #eef2f5; --panel: #ffffff; --panel-2: #f5f7f9; --ink: #142029; --muted: #566573;
+  --line: #d6dee5; --line-strong: #b4c1cc; --focus: #0f6f7a;
+  --btn: #142029; --btn-ink: #ffffff;
+  --pass: #1d7a45; --pass-bg: #e2f3e9; --fail: #b4232a; --fail-bg: #fbe8e8; --warn: #9a5a06; --warn-bg: #fdf1dc;
+  --ct: #2560c4; --mri: #6c45c2; --mammo: #b5326c; --fluoro: #bd5812; --rad: #2b7650; --dept: #3d6070;
+  --syn-kw: #8a2f9e; --syn-str: #2b7650; --syn-num: #bd5812; --syn-fn: #2560c4; --syn-com: #7c8a97;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1218; --panel: #151c24; --panel-2: #1a232d; --ink: #dce4ec; --muted: #93a1af;
+  --line: #26313d; --line-strong: #3a4857; --focus: #5fc4cf; --btn: #dce4ec; --btn-ink: #0d1218;
+  --pass: #63d394; --pass-bg: #12301f; --fail: #ff8080; --fail-bg: #3a181a; --warn: #f2b45c; --warn-bg: #362810;
+  --ct: #74a4ff; --mri: #b39bff; --mammo: #ff84b8; --fluoro: #ffa468; --rad: #66d39a; --dept: #93b8c9;
+  --syn-kw: #d9a2ff; --syn-str: #80dca8; --syn-num: #ffb685; --syn-fn: #93bbff; --syn-com: #6f7e8c;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0d1218; --panel: #151c24; --panel-2: #1a232d; --ink: #dce4ec; --muted: #93a1af;
+  --line: #26313d; --line-strong: #3a4857; --focus: #5fc4cf; --btn: #dce4ec; --btn-ink: #0d1218;
+  --pass: #63d394; --pass-bg: #12301f; --fail: #ff8080; --fail-bg: #3a181a; --warn: #f2b45c; --warn-bg: #362810;
+  --ct: #74a4ff; --mri: #b39bff; --mammo: #ff84b8; --fluoro: #ffa468; --rad: #66d39a; --dept: #93b8c9;
+  --syn-kw: #d9a2ff; --syn-str: #80dca8; --syn-num: #ffb685; --syn-fn: #93bbff; --syn-com: #6f7e8c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 40px; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* top bar */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark { width: 38px; height: 38px; flex: none; }
+.brand h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; letter-spacing: -0.01em; margin: 0; line-height: 1.1; }
+.brand p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+.stats { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stat { display: grid; padding: 4px 12px; border-left: 1px solid var(--line); }
+.stat:first-child { border-left: 0; padding-left: 0; }
+.stat b { font-family: var(--font-display); font-size: 1.15rem; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.stat span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tools select { background: var(--panel); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 8px; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--panel); border-radius: 8px; padding: 7px 13px; cursor: pointer; font-size: 0.9rem; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); font-weight: 700; }
+.btn.primary:hover { opacity: 0.9; }
+.btn.quiet { background: transparent; border-color: transparent; color: var(--muted); padding-inline: 8px; }
+.btn.quiet:hover { color: var(--ink); border-color: var(--line); }
+kbd { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.7; }
+
+/* desk */
+.desk { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "ticket work" "schema work"; gap: 16px; align-items: start; }
+#ticket { grid-area: ticket; } #schema { grid-area: schema; } #work { grid-area: work; }
+@media (max-width: 880px) { .desk { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "ticket" "work" "schema"; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+
+/* ticket */
+.ticket { position: relative; overflow: hidden; --room: var(--dept); }
+.ticket-band { background: color-mix(in srgb, var(--room) 16%, var(--panel)); border-bottom: 2px solid var(--room); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.room-name { font-family: var(--font-display); font-weight: 700; color: var(--room); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+.room-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--room); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line-strong); color: var(--ink); white-space: nowrap; }
+.chip.type { background: var(--room); border-color: var(--room); color: var(--panel); font-weight: 700; }
+.ticket-body { padding: 14px 16px 16px; display: grid; gap: 12px; }
+.from { font-size: 0.8rem; color: var(--muted); }
+.from b { color: var(--ink); font-weight: 700; }
+.prompt { font-size: 1.05rem; line-height: 1.55; margin: 0; }
+.mini-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.hint { background: var(--warn-bg); color: var(--ink); border-left: 3px solid var(--warn); padding: 8px 12px; font-size: 0.9rem; border-radius: 0; }
+.hint b { color: var(--warn); }
+.answer-box { display: grid; gap: 6px; }
+.answer-box .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+pre.code { margin: 0; font-family: var(--font-mono); font-size: 0.82rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; line-height: 1.55; }
+.ticket-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ticket.stamped .ticket-body { padding-bottom: 70px; }
+.stamp { position: absolute; right: 18px; bottom: 16px; transform: rotate(-9deg) scale(1); font-family: var(--font-display); font-weight: 700; letter-spacing: 0.12em; font-size: 1.5rem; padding: 4px 14px; border: 3px double currentColor; border-radius: 6px; pointer-events: none; text-transform: uppercase; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+.stamp.pass { color: var(--pass); }
+.stamp.fail { color: var(--fail); font-size: 1.1rem; }
+.stamp.show { animation: stamp 0.32s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes stamp { from { transform: rotate(-9deg) scale(1.9); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: 1; } }
+
+/* schema */
+.schema { padding: 12px 14px; display: grid; gap: 4px; }
+.panel-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; margin: 0 0 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.panel-title small { font-family: var(--font-body); font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+details.tbl { border-top: 1px solid var(--line); }
+details.tbl:first-of-type { border-top: 0; }
+details.tbl summary { cursor: pointer; padding: 7px 2px; font-family: var(--font-mono); font-size: 0.86rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; list-style: none; }
+details.tbl summary::-webkit-details-marker { display: none; }
+details.tbl summary::before { content: "▸"; color: var(--muted); margin-right: 6px; transition: transform .15s; display: inline-block; }
+details.tbl[open] summary::before { transform: rotate(90deg); }
+details.tbl summary .rows { font-family: var(--font-body); color: var(--muted); font-size: 0.75rem; margin-left: auto; }
+.tbl-note { font-size: 0.8rem; color: var(--muted); margin: 0 0 6px; }
+.cols { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 8px; }
+.col-btn { font-family: var(--font-mono); font-size: 0.76rem; border: 1px solid var(--line); background: var(--panel-2); border-radius: 6px; padding: 2px 7px; cursor: pointer; }
+.col-btn:hover { border-color: var(--focus); }
+.col-btn i { font-style: normal; color: var(--muted); font-size: 0.68rem; margin-left: 4px; }
+
+/* workspace */
+.work { display: grid; }
+.work-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.work-head h2 { font-family: var(--font-display); font-size: 0.95rem; margin: 0; }
+.editor-wrap { border-bottom: 1px solid var(--line); }
+.CodeMirror { height: auto; min-height: 190px; font-family: var(--font-mono); font-size: 14px; line-height: 1.6; background: var(--panel); color: var(--ink); }
+.CodeMirror-scroll { min-height: 190px; max-height: 420px; }
+.CodeMirror-gutters { background: var(--panel-2); border-right: 1px solid var(--line); }
+.CodeMirror-linenumber { color: var(--syn-com); }
+.CodeMirror-cursor { border-left: 2px solid var(--ink); }
+.CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected { background: color-mix(in srgb, var(--focus) 22%, transparent) !important; }
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection { background: color-mix(in srgb, var(--focus) 22%, transparent); }
+.cm-s-shift .cm-keyword { color: var(--syn-kw); font-weight: 600; }
+.cm-s-shift .cm-string { color: var(--syn-str); }
+.cm-s-shift .cm-number { color: var(--syn-num); }
+.cm-s-shift .cm-builtin, .cm-s-shift .cm-variable-2 { color: var(--syn-fn); }
+.cm-s-shift .cm-atom { color: var(--syn-num); font-style: italic; }
+.cm-s-shift .cm-comment { color: var(--syn-com); font-style: italic; }
+.cm-s-shift .cm-operator { color: var(--muted); }
+.CodeMirror-hints { background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 6px 18px rgba(0,0,0,.18); font-family: var(--font-mono); font-size: 13px; border-radius: 8px; padding: 4px; z-index: 50; }
+.CodeMirror-hint { color: var(--ink); border-radius: 4px; padding: 2px 8px; }
+li.CodeMirror-hint-active { background: var(--focus); color: var(--panel); }
+.bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.bar .spacer { flex: 1; }
+.status { padding: 10px 14px; font-size: 0.9rem; display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid var(--line); }
+.status.ok { background: var(--pass-bg); color: var(--pass); }
+.status.bad { background: var(--fail-bg); color: var(--fail); }
+.status.info { color: var(--muted); }
+.status .msg { color: var(--ink); }
+.status.ok .msg b, .status.bad .msg b { color: inherit; }
+.results { padding: 12px 14px 14px; display: grid; gap: 12px; min-width: 0; }
+.res-meta { font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.table-wrap { overflow: auto; max-height: 360px; border: 1px solid var(--line); border-radius: 8px; }
+table.grid { border-collapse: collapse; width: 100%; font-size: 0.84rem; font-variant-numeric: tabular-nums; }
+table.grid th { position: sticky; top: 0; background: var(--panel-2); text-align: left; font-family: var(--font-mono); font-weight: 600; font-size: 0.76rem; padding: 6px 10px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+table.grid td { padding: 5px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-family: var(--font-mono); font-size: 0.8rem; }
+table.grid tr:last-child td { border-bottom: 0; }
+table.grid td.null { color: var(--syn-com); font-style: italic; }
+table.grid tr.extra td { background: var(--fail-bg); color: var(--fail); }
+table.grid tr.missing td { background: var(--pass-bg); color: var(--pass); }
+.diff { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .diff { grid-template-columns: minmax(0, 1fr); } }
+.diff h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px; font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.legend { font-size: 0.72rem; text-transform: none; letter-spacing: 0; font-weight: 400; padding: 1px 6px; border-radius: 4px; }
+.legend.extra { background: var(--fail-bg); color: var(--fail); }
+.legend.missing { background: var(--pass-bg); color: var(--pass); }
+.empty-res { color: var(--muted); font-size: 0.9rem; padding: 18px 4px; text-align: center; }
+.predict { padding: 14px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.predict label { font-size: 0.85rem; color: var(--muted); }
+.predict-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.predict input { flex: 1 1 160px; min-width: 0; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 12px; font-family: var(--font-mono); font-size: 1rem; }
+.solution { display: grid; gap: 6px; }
+.solution .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+
+/* department map */
+.muted { color: var(--muted); font-size: 0.85rem; }
+.mapview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 330px); gap: 16px; align-items: start; }
+@media (max-width: 980px) { .mapview { grid-template-columns: minmax(0, 1fr); } }
+.plan-panel { padding: 14px 16px 16px; display: grid; gap: 10px; }
+.plan-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
+.plan-head h2, .inbox-head h2 { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
+.plan { width: 100%; height: auto; display: block; }
+.plan .floor { fill: var(--panel-2); stroke: var(--line-strong); stroke-width: 2; }
+.plan .corridor { fill: var(--bg); }
+.plan .corridor-line { stroke: var(--line-strong); stroke-width: 2; stroke-dasharray: 14 12; fill: none; }
+.plan .corridor-text { font-family: var(--font-body); font-size: 12px; letter-spacing: 0.14em; fill: var(--muted); }
+.plan .entrance { fill: var(--muted); }
+.plan .room { cursor: pointer; outline: none; }
+.plan .room-fill { fill: color-mix(in srgb, var(--room) 13%, var(--panel)); transition: fill .15s; }
+.plan .room:hover .room-fill, .plan .room:focus-visible .room-fill { fill: color-mix(in srgb, var(--room) 24%, var(--panel)); }
+.plan .wall { fill: none; stroke: var(--ink); stroke-width: 5; opacity: .78; }
+.plan .room:focus-visible .wall { stroke: var(--focus); opacity: 1; }
+.plan .room.weak .wall { stroke: var(--fail); opacity: 1; }
+.plan .door-gap { fill: var(--bg); }
+.plan .door-swing { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.plan .eq { fill: var(--panel); stroke: color-mix(in srgb, var(--room) 70%, var(--ink)); stroke-width: 2.5; }
+.plan .eq-line { fill: none; stroke: color-mix(in srgb, var(--room) 70%, var(--ink)); stroke-width: 1.8; }
+.plan .gauss { fill: none; stroke: var(--room); stroke-width: 1.6; stroke-dasharray: 6 5; }
+.plan .carm { fill: none; stroke: color-mix(in srgb, var(--room) 70%, var(--ink)); stroke-width: 9; stroke-linecap: round; }
+.plan .rail { fill: none; stroke: color-mix(in srgb, var(--room) 55%, var(--muted)); stroke-width: 2; stroke-dasharray: 10 6; }
+.plan .shield { fill: var(--muted); }
+.plan .eq-label { font-family: var(--font-body); font-size: 11px; fill: var(--muted); }
+.plan .room-title { font-family: var(--font-display); font-weight: 700; font-size: 21px; fill: var(--room); }
+.plan .room-sub { font-family: var(--font-body); font-size: 13px; fill: var(--ink); }
+.plan .bar-bg { fill: var(--line); } .plan .bar-fg { fill: var(--room); }
+.plan .badge { fill: var(--room); } .plan .badge-text { font-family: var(--font-display); font-weight: 700; font-size: 16px; fill: var(--panel); }
+.plan .locked { cursor: not-allowed; }
+.plan .lock { fill: url(#hatch); opacity: .9; }
+.plan .hatch-bg { fill: var(--panel-2); } .plan .hatch-line { stroke: var(--line-strong); stroke-width: 2; }
+.plan .lock-text { font-family: var(--font-display); font-weight: 700; font-size: 18px; fill: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+.plan .locked .room-title { fill: var(--muted); }
+.room-cards { display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 700px) { .plan-wrap { display: none; } .room-cards { display: grid; } }
+.room-card { text-align: left; border: 1px solid color-mix(in srgb, var(--room) 40%, var(--line)); background: color-mix(in srgb, var(--room) 13%, var(--panel)); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; cursor: pointer; }
+.room-card .rc-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.room-card b { font-family: var(--font-display); color: var(--room); font-size: 1rem; }
+.rc-badge { background: var(--room); color: var(--panel); font-weight: 700; font-size: .78rem; border-radius: 999px; min-width: 22px; text-align: center; padding: 1px 7px; }
+.rc-lock { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.room-card .rc-top b { min-width: 0; overflow-wrap: anywhere; }
+.rc-sub { font-size: .8rem; color: var(--ink); }
+.rc-bar { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; } .rc-bar span { display: block; height: 100%; background: var(--room); }
+.room-card.locked { background: var(--panel-2); border-style: dashed; border-color: var(--line-strong); cursor: not-allowed; }
+.room-card.locked b { color: var(--muted); }
+.inbox { padding: 14px; display: grid; gap: 12px; }
+.inbox-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.inbox-head .count { font-family: var(--font-body); font-size: .8rem; color: var(--muted); font-weight: 400; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.needs { background: var(--fail-bg); border-radius: 8px; padding: 8px 10px; font-size: .85rem; display: grid; gap: 2px; }
+.needs .label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--fail); font-weight: 700; }
+.inbox-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.inbox-item { width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--room); border-radius: 0 8px 8px 0; padding: 8px 10px; display: grid; gap: 4px; cursor: pointer; }
+.inbox-item:hover { background: color-mix(in srgb, var(--room) 8%, var(--panel)); }
+.ii-head { display: flex; justify-content: space-between; gap: 8px; font-size: .78rem; }
+.ii-room { color: var(--room); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.ii-meta { color: var(--muted); white-space: nowrap; }
+.ii-prompt { font-size: .86rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.crumbs { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.crumbs .back { padding-left: 0; }
+.crumb-room { color: var(--room); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.crumb-room .room-dot, .ii-room .room-dot { width: 8px; height: 8px; }
+
+/* stats */
+.nav-stats { margin-left: auto; }
+.focus-pill { display: inline-flex; align-items: center; gap: 8px; background: color-mix(in srgb, var(--focus) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--focus) 45%, var(--line)); color: var(--ink); border-radius: 999px; padding: 3px 4px 3px 12px; font-size: .85rem; font-weight: 700; }
+.focus-pill button { border: 0; background: var(--panel); border-radius: 999px; padding: 2px 10px; cursor: pointer; font-size: .8rem; }
+.btn.small { padding: 4px 10px; font-size: .8rem; }
+.statsview { display: grid; gap: 16px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { padding: 14px 16px; display: grid; gap: 4px; align-content: start; border-left: 1px solid var(--line); }
+.tile:first-child { border-left: 0; }
+@media (max-width: 760px) { .tile:nth-child(3) { border-left: 0; } .tile:nth-child(n+3) { border-top: 1px solid var(--line); } }
+.tile b { font-family: var(--font-display); font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.t-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.t-note { font-size: .78rem; color: var(--muted); }
+.pdots { display: flex; gap: 5px; margin-top: 2px; }
+.pdot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-strong); }
+.pdot.ok { background: var(--pass); border-color: var(--pass); }
+.pdot.miss { background: var(--fail); border-color: var(--fail); }
+.stats-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; align-items: start; }
+@media (max-width: 980px) { .stats-grid { grid-template-columns: minmax(0, 1fr); } }
+.radar-panel, .skills-panel, .rooms-panel { padding: 14px 16px 16px; display: grid; gap: 6px; }
+.radar-panel .muted { margin: 0; }
+.radar { width: 100%; max-width: 520px; height: auto; justify-self: center; }
+.radar .ring { fill: none; stroke: var(--line); stroke-width: 1; }
+.radar .ring:last-of-type { stroke: var(--line-strong); }
+.radar .spoke { stroke: var(--line); stroke-width: 1; }
+.radar .ring-label { font-size: 10px; fill: var(--muted); font-family: var(--font-body); }
+.radar .radar-shape { fill: color-mix(in srgb, var(--focus) 22%, transparent); stroke: var(--focus); stroke-width: 2.5; stroke-linejoin: round; }
+.radar .radar-dot { fill: var(--panel); stroke: var(--focus); stroke-width: 2.5; }
+.radar .axis-label { font-family: var(--font-display); font-weight: 700; font-size: 13px; fill: var(--ink); }
+.radar .axis-label.none { fill: var(--muted); }
+.radar .axis-val { font-family: var(--font-body); font-weight: 400; font-size: 11.5px; fill: var(--muted); }
+.sk-wrap { overflow-x: auto; }
+.sk-table { width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }
+.sk-table th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--line-strong); }
+.sk-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.sk-table tr:last-child td { border-bottom: 0; }
+.sk-table tr.weak .sk-name { color: var(--fail); font-weight: 700; }
+.sk-tier, .sk-n { color: var(--muted); white-space: nowrap; }
+.sk-acc { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.sk-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; min-width: 60px; }
+.sk-bar span { display: block; height: 100%; background: var(--focus); transform-origin: left; animation: grow .7s cubic-bezier(.2,.8,.2,1) both .15s; }
+.sk-table tr.weak .sk-bar span { background: var(--fail); }
+.sk-pct { width: 36px; text-align: right; font-size: .8rem; }
+.sk-act { text-align: right; white-space: nowrap; }
+.rs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.rs-card { border: 1px solid color-mix(in srgb, var(--room) 35%, var(--line)); background: color-mix(in srgb, var(--room) 10%, var(--panel)); border-radius: 10px; padding: 10px 12px; display: grid; gap: 5px; }
+.rs-card b { font-family: var(--font-display); color: var(--room); }
+.rs-num { font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; line-height: 1; }
+.rs-card .muted { font-size: .75rem; }
+.reset-row { display: flex; justify-content: flex-end; }
+
+@media (max-width: 560px) {
+  .sk-table .sk-tier, .sk-table .sk-n { display: none; }
+  .sk-acc { min-width: 90px; }
+  .radar { overflow: visible; }
+  .radar .axis-label { font-size: 17px; } .radar .axis-val { font-size: 15px; }
+}
+/* motion */
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } }
+@keyframes grow { from { transform: scaleX(0); } }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--room) 55%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.enter { animation: slideUp .34s cubic-bezier(.2,.8,.2,1) both; }
+#work.enter { animation-delay: .05s; }
+.inbox-item { animation: slideUp .3s ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
+.inbox-item.fresh { animation: slideUp .3s ease-out both, ping 1.2s ease-out .4s 2; }
+.new-tag { background: var(--room); color: var(--panel); font-size: .64rem; text-transform: uppercase; letter-spacing: .06em; border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+.plan .bar-fg { transform-box: fill-box; transform-origin: left; animation: grow .8s cubic-bezier(.2,.8,.2,1) both .15s; }
+.rc-bar span { transform-origin: left; animation: grow .8s cubic-bezier(.2,.8,.2,1) both .15s; }
+.plan .badge { transform-box: fill-box; transform-origin: center; animation: pop .4s cubic-bezier(.2,1.6,.4,1) both .3s; }
+@keyframes pop { from { transform: scale(0); } }
+.tiles, .stats-grid, .rooms-panel { animation: slideUp .35s ease-out both; }
+.stats-grid { animation-delay: .06s; } .rooms-panel { animation-delay: .12s; }
+/* loading + toast */
+.loading { display: grid; place-items: center; gap: 10px; padding: 60px 10px; color: var(--muted); text-align: center; }
+.scan { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--line); border-top-color: var(--ct); animation: spin 1.1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 10px 16px; border-radius: 10px; font-weight: 700; z-index: 40; max-width: calc(100% - 32px); box-shadow: 0 8px 24px rgba(0,0,0,.25); animation: rise .25s ease-out both; }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+.foot { margin-top: 18px; color: var(--muted); font-size: 0.78rem; display: flex; gap: 6px 16px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="17" fill="none" stroke="var(--ct)" stroke-width="5"/>
+        <circle cx="20" cy="20" r="7" fill="var(--panel)" stroke="var(--line-strong)" stroke-width="2"/>
+        <rect x="6" y="31" width="28" height="5" rx="2" fill="var(--muted)"/>
+      </svg>
+      <div><h1>Physics Shift</h1><p>SQL practice in a hospital imaging department</p></div>
+    </div>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="sTier">1</b><span>Tier</span></div>
+      <div class="stat"><b id="sStreak">0</b><span>Streak</span></div>
+      <div class="stat"><b id="sSolved">0</b><span>Closed</span></div>
+      <div class="stat"><b id="sAcc">–</b><span>First-try</span></div>
+    </div>
+    <div class="tools">
+      <label for="tierMode" class="sr-hidden" style="font-size:.8rem;color:var(--muted)">Practice</label>
+      <select id="tierMode">
+        <option value="auto">Adaptive</option>
+        <option value="1">Tier 1 only</option><option value="2">Tier 2 only</option><option value="3">Tier 3 only</option><option value="4">Tier 4 only</option><option value="5">Tier 5 only</option>
+      </select>
+      <button class="btn" id="btnHospital" type="button" title="Generate a new hospital database">New hospital</button>
+      <button class="btn" id="btnTheme" type="button">Reading room</button>
+    </div>
+  </header>
+
+  <div id="app">
+    <div class="loading" id="loading"><div class="scan"></div><div>Warming up the scanners…</div></div>
+  </div>
+
+  <div class="foot">
+    <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> runs your query</span>
+    <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Enter</kbd> submits</span>
+    <span><kbd>Ctrl</kbd> + <kbd>Space</kbd> suggests tables and columns</span>
+    <span>Dose reference levels are practice values, not clinical ones.</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/sql-asm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
+<script>
+/* Physics Shift engine: hospital generator, ticket templates, grading */
+(function (root) {
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function helpers(r) {
+    const int = (a, b) => a + Math.floor(r() * (b - a + 1));
+    const pick = (arr) => arr[Math.floor(r() * arr.length)];
+    const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const gauss = () => { let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    return { int, pick, shuffle, gauss };
+  }
+  const pad = (n) => String(n).padStart(2, '0');
+  const ymd = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const DAYS_IN = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const TODAY = '2026-10-28';
+
+  const MODS = ['CT', 'MRI', 'Mammo', 'Fluoro', 'Radiography'];
+  const DOSE_MODS = ['CT', 'Mammo', 'Fluoro', 'Radiography'];
+  const MOD_INFO = {
+    CT: { code: 'CT', n: 4, wings: ['Main', 'ED', 'West', 'Outpatient'], makers: ['Siemens', 'GE', 'Philips', 'Canon'] },
+    MRI: { code: 'MR', n: 3, wings: ['Main', 'Outpatient', 'West'], makers: ['Siemens', 'GE', 'Philips'] },
+    Mammo: { code: 'MG', n: 3, wings: ['Breast Center', 'Breast Center', 'Outpatient'], makers: ['Hologic', 'GE', 'Siemens', 'Fujifilm'] },
+    Fluoro: { code: 'RF', n: 2, wings: ['Main', 'West'], makers: ['Siemens', 'Philips', 'GE'] },
+    Radiography: { code: 'DX', n: 4, wings: ['ED', 'Main', 'Outpatient', 'West'], makers: ['Siemens', 'GE', 'Philips', 'Canon', 'Fujifilm'] },
+  };
+  const WING_CODE = { Main: 'MN', ED: 'ED', West: 'WS', Outpatient: 'OP', 'Breast Center': 'BC' };
+  const WING_NAME = { MN: 'Main building', ED: 'Emergency Department', WS: 'West wing', OP: 'Outpatient center', BC: 'Breast Center' };
+  const QC = {
+    CT: [['CT number accuracy', 0, 5, 'HU'], ['Image noise', 5.0, 0.6, 'HU'], ['Uniformity', 0, 5, 'HU'], ['Slice thickness', 5.0, 1.0, 'mm']],
+    MRI: [['Center frequency drift', 0, 3, 'ppm'], ['SNR', 120, 15, ''], ['Geometric accuracy', 0, 2, 'mm']],
+    Mammo: [['Phantom image score', 4.5, 1.0, 'points'], ['AEC reproducibility', 0, 5, '%'], ['Phantom MGD', 1.6, 1.4, 'mGy']],
+    Fluoro: [['Max air kerma rate', 60, 28, 'mGy/min'], ['HVL', 3.5, 1.0, 'mm Al']],
+    Radiography: [['kVp accuracy', 0, 5, '%'], ['HVL', 3.0, 0.8, 'mm Al'], ['Collimation', 0, 2, '% SID']],
+  };
+  const PROTOCOLS = [
+    ['CT', 'Routine head', 'CTDIvol', 57], ['CT', 'Chest', 'CTDIvol', 12], ['CT', 'Abdomen/pelvis', 'CTDIvol', 16],
+    ['MRI', 'Brain', null, null], ['MRI', 'Knee', null, null], ['MRI', 'Lumbar spine', null, null],
+    ['Mammo', 'Screening 2-view', 'MGD', 4.0], ['Mammo', 'Diagnostic', 'MGD', 5.0],
+    ['Fluoro', 'Barium swallow', 'Ka,r', 60], ['Fluoro', 'Joint injection', 'Ka,r', 8],
+    ['Radiography', 'Chest PA', 'ESAK', 0.2], ['Radiography', 'Knee', 'ESAK', 0.5], ['Radiography', 'Lumbar spine AP', 'ESAK', 3.5],
+  ];
+  const FIRST = ['Dana', 'Marcus', 'Priya', 'Tomás', 'Aisha', 'Ken', 'Lucia', 'Owen', 'Mei', 'Jamal', 'Sofia', 'Rahul', 'Grace', 'Nikolai', 'Hannah', 'Diego', 'Yuki', 'Femi', 'Clara', 'Ben'];
+  const LAST = ['Ortiz', 'Chen', 'Patel', 'Walsh', 'Okafor', 'Nguyen', 'Brennan', 'Kowalski', 'Haddad', 'Lindqvist', 'Moreau', 'Sato', 'Mensah', 'Fischer', 'Reyes', 'Novak', 'Adeyemi', 'Rossi', 'Kim', 'Duarte'];
+
+  const SCHEMA = `
+CREATE TABLE staff (id INTEGER PRIMARY KEY, name TEXT, role TEXT, modality TEXT);
+CREATE TABLE machines (id INTEGER PRIMARY KEY, name TEXT, modality TEXT, room TEXT, manufacturer TEXT, install_date TEXT, status TEXT);
+CREATE TABLE protocols (id INTEGER PRIMARY KEY, modality TEXT, name TEXT, dose_metric TEXT, drl_mgy REAL);
+CREATE TABLE qc_tests (id INTEGER PRIMARY KEY, machine_id INTEGER, test_name TEXT, test_date TEXT, result TEXT, measured_value REAL, unit TEXT, performed_by INTEGER);
+CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTEGER, exam_date TEXT, patient_age INTEGER, dose_mgy REAL, tech_id INTEGER);`;
+
+  const TABLE_NOTES = {
+    staff: 'Everyone in the department. Physicists and radiologists have no modality.',
+    machines: 'Every imaging unit. status is "active" or "out of service".',
+    protocols: 'Exam protocols. drl_mgy is the department reference level; MRI has none.',
+    qc_tests: 'QC test log. result is "PASS" or "FAIL". performed_by is a staff id.',
+    exams: 'Patient exams in 2026. dose_mgy is empty for MRI. tech_id is a staff id.',
+  };
+
+  function generate(SQL, seed) {
+    const r = mulberry32(seed);
+    const { int, pick, shuffle, gauss } = helpers(r);
+    const db = new SQL.Database();
+    db.run(SCHEMA);
+
+    // staff
+    const names = new Set();
+    const newName = () => { let n; do { n = pick(FIRST) + ' ' + pick(LAST); } while (names.has(n)); names.add(n); return n; };
+    const staff = [];
+    for (let i = 0; i < 3; i++) staff.push([newName(), 'Physicist', null]);
+    for (let i = 0; i < 3; i++) staff.push([newName(), 'Radiologist', null]);
+    MODS.forEach((m) => { staff.push([newName(), 'Technologist', m]); staff.push([newName(), 'Technologist', m]); });
+    const shuffled = shuffle(staff);
+    const st = db.prepare('INSERT INTO staff (id,name,role,modality) VALUES (?,?,?,?)');
+    shuffled.forEach((s, i) => st.run([i + 1, s[0], s[1], s[2]]));
+    st.free();
+    const staffRows = shuffled.map((s, i) => ({ id: i + 1, name: s[0], role: s[1], modality: s[2] }));
+    const techsFor = (m) => staffRows.filter((s) => s.role === 'Technologist' && s.modality === m);
+    const physicists = staffRows.filter((s) => s.role === 'Physicist');
+
+    // protocols
+    const pst = db.prepare('INSERT INTO protocols (id,modality,name,dose_metric,drl_mgy) VALUES (?,?,?,?,?)');
+    PROTOCOLS.forEach((p, i) => pst.run([i + 1, p[0], p[1], p[2], p[3]]));
+    pst.free();
+    const protoRows = PROTOCOLS.map((p, i) => ({ id: i + 1, modality: p[0], name: p[1], drl: p[3] }));
+
+    // machines
+    const machines = [];
+    MODS.forEach((m) => {
+      const info = MOD_INFO[m];
+      const roomsUsed = new Set();
+      for (let i = 0; i < info.n; i++) {
+        const wing = info.wings[i];
+        let room; do { room = `${WING_CODE[wing]}-${int(1, 3)}${pad(int(1, 40))}`; } while (roomsUsed.has(room)); roomsUsed.add(room);
+        machines.push({ name: `${info.code}-${i + 1} ${wing}`, modality: m, room, manufacturer: pick(info.makers), install_date: ymd(int(2012, 2025), int(1, 12), int(1, 28)), status: 'active', isNew: false });
+      }
+    });
+    const ms = shuffle(machines.map((_, i) => i).filter((i) => MOD_INFO[machines[i].modality].n >= 3));
+    const nNew = int(1, 2);
+    for (let k = 0; k < nNew; k++) { const mm = machines[ms[k]]; mm.isNew = true; mm.install_date = ymd(2026, int(9, 10), int(1, 20)); }
+    machines[ms[nNew]].status = 'out of service';
+    machines.sort((a, b) => a.modality.localeCompare(b.modality) || a.name.localeCompare(b.name));
+    const mst = db.prepare('INSERT INTO machines (id,name,modality,room,manufacturer,install_date,status) VALUES (?,?,?,?,?,?,?)');
+    machines.forEach((m, i) => { m.id = i + 1; mst.run([m.id, m.name, m.modality, m.room, m.manufacturer, m.install_date, m.status]); });
+    mst.free();
+
+    // qc tests
+    const qcs = [];
+    const old = machines.filter((m) => !m.isNew);
+    const forcedOverdue = new Set(shuffle(old).slice(0, 2).map((m) => m.id));
+    old.forEach((m) => {
+      const tests = QC[m.modality];
+      const failBias = 0.06 + r() * 0.14;
+      for (let mo = 1; mo <= 10; mo++) {
+        const k = int(1, 2);
+        shuffle(tests).slice(0, k).forEach((t) => {
+          const fail = r() < failBias;
+          const [nm, nom, tol, unit] = t;
+          let v = fail ? nom + (r() < 0.5 ? -1 : 1) * tol * (1.08 + r() * 0.6) : nom + (r() * 2 - 1) * tol * 0.85;
+          v = Math.round(v * 100) / 100;
+          const by = r() < 0.7 ? pick(techsFor(m.modality)).id : pick(physicists).id;
+          qcs.push([m.id, nm, ymd(2026, mo, int(1, 28)), fail ? 'FAIL' : 'PASS', v, unit || null, by]);
+        });
+      }
+      const sd = forcedOverdue.has(m.id) ? ymd(2025, int(6, 9), int(1, 28)) : (r() < 0.25 ? ymd(2025, int(6, 10), int(1, 27)) : ymd(2025 + (r() < 0.5 ? 1 : 0), int(1, 10), int(1, 28)));
+      const sdate = sd > TODAY ? '2026-10-15' : sd;
+      qcs.push([m.id, 'Annual survey', sdate, r() < 0.1 ? 'FAIL' : 'PASS', null, null, pick(physicists).id]);
+    });
+    qcs.sort((a, b) => a[2].localeCompare(b[2]) || a[0] - b[0]);
+    const qst = db.prepare('INSERT INTO qc_tests (id,machine_id,test_name,test_date,result,measured_value,unit,performed_by) VALUES (?,?,?,?,?,?,?,?)');
+    qcs.forEach((q, i) => qst.run([i + 1, ...q]));
+    qst.free();
+
+    // exams
+    const exams = [];
+    old.forEach((m) => {
+      const n = int(18, 42);
+      const protos = protoRows.filter((p) => p.modality === m.modality);
+      const lastMonth = m.status === 'out of service' ? 8 : 10;
+      for (let i = 0; i < n; i++) {
+        const p = pick(protos);
+        const mo = int(1, lastMonth);
+        const day = int(1, mo === 10 ? 27 : DAYS_IN[mo - 1]);
+        const dose = p.drl == null ? null : Math.round(p.drl * Math.exp(gauss() * 0.3 - 0.22) * 100) / 100;
+        exams.push([m.id, p.id, ymd(2026, mo, day), int(18, 92), dose, pick(techsFor(m.modality)).id]);
+      }
+    });
+    exams.sort((a, b) => a[2].localeCompare(b[2]) || a[0] - b[0]);
+    const est = db.prepare('INSERT INTO exams (id,machine_id,protocol_id,exam_date,patient_age,dose_mgy,tech_id) VALUES (?,?,?,?,?,?,?)');
+    exams.forEach((e, i) => est.run([i + 1, ...e]));
+    est.free();
+
+    const bytes = db.export();
+    db.close();
+    return bytes;
+  }
+
+  // ---------- query helpers ----------
+  function runOn(SQL, bytes, sql) {
+    const d = new SQL.Database(bytes);
+    try {
+      const res = d.exec(sql);
+      const last = res.length ? res[res.length - 1] : { columns: [], values: [] };
+      return { columns: last.columns, rows: last.values };
+    } catch (e) {
+      return { error: String(e.message || e) };
+    } finally { d.close(); }
+  }
+  function ctxFor(SQL, bytes, r, room) {
+    const h = helpers(r);
+    const inMod = MODS.includes(room);
+    const mod = (list) => (inMod && list.includes(room) ? room : h.pick(list));
+    const inRoom = (rows) => {
+      if (!inMod || !rows.length) return rows;
+      const key = 'modality' in rows[0] ? 'modality' : ('mod' in rows[0] ? 'mod' : null);
+      if (!key) return rows;
+      const f = rows.filter((x) => x[key] === room);
+      if (!f.length) throw new Error('nothing for this room');
+      return f;
+    };
+    const pickR = (rows) => h.pick(inRoom(rows));
+    const d = new SQL.Database(bytes);
+    const q = (sql) => { const res = d.exec(sql); if (!res.length) return []; const { columns, values } = res[0]; return values.map((v) => Object.fromEntries(columns.map((c, i) => [c, v[i]]))); };
+    const qv = (sql) => { const res = d.exec(sql); return res.length ? res[0].values[0][0] : null; };
+    const monthsWithData = () => q("SELECT DISTINCT substr(test_date,1,7) AS m FROM qc_tests WHERE test_date >= '2026-01-01' ORDER BY m").map((x) => x.m);
+    return Object.assign({ mod, inRoom, pickR, room, q, qv, close: () => d.close(), monthName: (m) => MONTHS[Number(m.slice(5, 7)) - 1], monthEnd: (m) => `${m}-${pad(DAYS_IN[Number(m.slice(5, 7)) - 1])}`, monthsWithData, wingName: WING_NAME, r }, h);
+  }
+  const sqlStr = (s) => "'" + String(s).replace(/'/g, "''") + "'";
+
+  // ---------- templates ----------
+  // Each gen returns { room, prompt, sql, ordered?, broken?, hint } or for predict: { room, prompt, sample: sqlForSampleRows, query, hint }
+  const T = [];
+  const add = (o) => T.push(o);
+
+  // ===== Tier 1 =====
+  add({ id: 'mod-list', tier: 1, skill: 'where', gen(c) {
+    const m = c.mod(MODS);
+    return { room: m, prompt: `List the name and room of every ${m} unit.`, sql: `SELECT name, room\nFROM machines\nWHERE modality = '${m}';`,
+      broken: `SELECT name, room\nFROM machines\nWHERE modality = ${m};`, hint: 'Text values in a WHERE filter go inside single quotes.' };
+  } });
+  add({ id: 'oldest', tier: 1, skill: 'order', gen(c) {
+    const n = c.int(3, 5);
+    return { room: 'Department', prompt: `Show the ${n} oldest machines by install date: name and install_date, oldest first.`, ordered: true,
+      sql: `SELECT name, install_date\nFROM machines\nORDER BY install_date\nLIMIT ${n};`, broken: `SELECT name, install_date\nFROM machines\nORDER BY install_date DESC\nLIMIT ${n};`,
+      hint: 'ORDER BY sorts ascending (oldest date first) by default. LIMIT keeps the first n rows.' };
+  } });
+  add({ id: 'wing', tier: 1, skill: 'like', gen(c) {
+    const codes = c.q("SELECT DISTINCT substr(room,1,2) AS w FROM machines").map((x) => x.w);
+    const w = c.pick(codes);
+    return { room: 'Department', prompt: `Room codes in the ${c.wingName[w]} start with '${w}-'. List the name and room of every machine there.`,
+      sql: `SELECT name, room\nFROM machines\nWHERE room LIKE '${w}-%';`, broken: `SELECT name, room\nFROM machines\nWHERE room = '${w}-%';`,
+      hint: "LIKE does pattern matching. % stands for any run of characters, so 'ED-%' means 'starts with ED-'." };
+  } });
+  add({ id: 'two-mods', tier: 1, skill: 'in', gen(c) {
+    const [a, b] = c.shuffle(MODS).slice(0, 2);
+    return { room: 'Department', prompt: `List the name and modality of every ${a} or ${b} unit.`,
+      sql: `SELECT name, modality\nFROM machines\nWHERE modality IN ('${a}', '${b}');`, broken: `SELECT name, modality\nFROM machines\nWHERE modality = '${a}' AND modality = '${b}';`,
+      hint: "IN ('A', 'B') matches either value. A single row can't have two modalities at once, so AND returns nothing." };
+  } });
+  add({ id: 'oos', tier: 1, skill: 'where', gen() {
+    return { room: 'Department', prompt: 'Which machines are out of service? Show the name and modality.',
+      sql: "SELECT name, modality\nFROM machines\nWHERE status = 'out of service';", hint: 'Look at the status column in machines.' };
+  } });
+  add({ id: 'staff-role', tier: 1, skill: 'order', gen(c) {
+    const role = c.pick(['Technologist', 'Physicist', 'Radiologist']);
+    return { room: 'Department', prompt: `List every ${role.toLowerCase()}'s name, alphabetically.`, ordered: true,
+      sql: `SELECT name\nFROM staff\nWHERE role = '${role}'\nORDER BY name;`, broken: `SELECT name\nFROM staff\nWHERE role = '${role.toLowerCase()}'\nORDER BY name;`,
+      hint: `Text comparisons with = are case-sensitive. The role is stored as '${role}'.` };
+  } });
+  add({ id: 'manufacturers', tier: 1, skill: 'distinct', gen() {
+    return { room: 'Department', prompt: 'Which manufacturers does the department use? List each one once, alphabetically.', ordered: true,
+      sql: 'SELECT DISTINCT manufacturer\nFROM machines\nORDER BY manufacturer;', broken: 'SELECT manufacturer\nFROM machines\nORDER BY manufacturer;',
+      hint: 'SELECT DISTINCT removes duplicate rows.' };
+  } });
+  add({ id: 'high-dose', tier: 1, skill: 'where', gen(c) {
+    const p = c.pickR(c.q('SELECT id, modality, name, drl_mgy FROM protocols WHERE drl_mgy IS NOT NULL'));
+    const thr = Math.round(p.drl_mgy * c.pick([1, 1.1, 1.2]) * 10) / 10;
+    return { room: p.modality, prompt: `Protocol ${p.id} is ${p.modality} "${p.name}". List exams on that protocol with dose_mgy above ${thr}: exam id and dose_mgy.`,
+      sql: `SELECT id, dose_mgy\nFROM exams\nWHERE protocol_id = ${p.id}\n  AND dose_mgy > ${thr};`, broken: `SELECT id, dose_mgy\nFROM exams\nWHERE protocol_id = ${p.id}\n   OR dose_mgy > ${thr};`,
+      hint: 'Both conditions must be true, so join them with AND.' };
+  } });
+  add({ id: 'no-modality', tier: 1, skill: 'null', gen() {
+    return { room: 'Department', prompt: "Physicists and radiologists aren't tied to one modality, so their modality is empty. List the name and role of everyone with no modality.",
+      sql: 'SELECT name, role\nFROM staff\nWHERE modality IS NULL;', broken: 'SELECT name, role\nFROM staff\nWHERE modality = NULL;',
+      hint: 'NULL never equals anything, not even NULL. Use IS NULL.' };
+  } });
+  add({ id: 'young', tier: 1, skill: 'where', gen(c) {
+    const m = c.mod(DOSE_MODS); const age = c.pick([25, 30, 35]);
+    const ids = c.q(`SELECT id FROM protocols WHERE modality='${m}'`).map((x) => x.id);
+    return { room: m, prompt: `Radiologists want to review ${m} exams on patients younger than ${age}. ${m} protocols are ids ${ids.join(', ')}. Show exam id, patient_age, and dose_mgy.`,
+      sql: `SELECT id, patient_age, dose_mgy\nFROM exams\nWHERE protocol_id IN (${ids.join(', ')})\n  AND patient_age < ${age};`, broken: `SELECT id, patient_age, dose_mgy\nFROM exams\nWHERE protocol_id IN (${ids.join(', ')})\n  AND patient_age <= ${age};`,
+      hint: '"Younger than" means strictly less than.' };
+  } });
+
+  // ===== Tier 2 =====
+  add({ id: 'fails-month', tier: 2, skill: 'count', gen(c) {
+    const m = c.pick(c.monthsWithData());
+    return { room: 'Department', prompt: `How many QC tests failed in ${c.monthName(m)} 2026?`,
+      sql: `SELECT COUNT(*)\nFROM qc_tests\nWHERE result = 'FAIL'\n  AND test_date LIKE '${m}%';`, broken: `SELECT COUNT(result = 'FAIL')\nFROM qc_tests\nWHERE test_date LIKE '${m}%';`,
+      hint: "COUNT(x) counts every row where x isn't NULL, and a comparison is 0 or 1, never NULL. Filter with WHERE instead." };
+  } });
+  add({ id: 'result-counts', tier: 2, skill: 'groupby', gen() {
+    return { room: 'Department', prompt: 'Count QC tests by result: show each result and how many tests had it.',
+      sql: 'SELECT result, COUNT(*)\nFROM qc_tests\nGROUP BY result;', broken: 'SELECT result, COUNT(*)\nFROM qc_tests;',
+      hint: 'Without GROUP BY, COUNT(*) squashes the whole table into one row.' };
+  } });
+  add({ id: 'proto-avg', tier: 2, skill: 'aggregate', gen(c) {
+    const p = c.pickR(c.q('SELECT id, modality, name FROM protocols WHERE drl_mgy IS NOT NULL'));
+    return { room: p.modality, prompt: `What's the average dose_mgy for protocol ${p.id} (${p.modality} "${p.name}")? Round to 1 decimal.`,
+      sql: `SELECT ROUND(AVG(dose_mgy), 1)\nFROM exams\nWHERE protocol_id = ${p.id};`, hint: 'AVG() averages a column; ROUND(value, 1) keeps one decimal.' };
+  } });
+  add({ id: 'proto-stats', tier: 2, skill: 'groupby', gen(c) {
+    const m = c.mod(DOSE_MODS); const ids = c.q(`SELECT id FROM protocols WHERE modality='${m}'`).map((x) => x.id);
+    return { room: m, prompt: `For each ${m} protocol_id (${ids.join(', ')}), show the number of exams and the highest dose_mgy.`,
+      sql: `SELECT protocol_id, COUNT(*), MAX(dose_mgy)\nFROM exams\nWHERE protocol_id IN (${ids.join(', ')})\nGROUP BY protocol_id;`,
+      hint: 'Filter rows with WHERE, then GROUP BY protocol_id so COUNT and MAX run once per protocol.' };
+  } });
+  add({ id: 'fail-having', tier: 2, skill: 'having', gen(c) {
+    const counts = c.q("SELECT COUNT(*) AS n FROM qc_tests WHERE result='FAIL' GROUP BY machine_id ORDER BY n DESC").map((x) => x.n);
+    const dv = [...new Set(counts)];
+    const k = dv.length > 1 ? dv[Math.min(c.int(1, 2), dv.length - 1)] : dv[0] - 1;
+    return { room: 'Department', prompt: `Which machine_ids have more than ${k} failed QC tests? Show machine_id and the number of failures.`,
+      sql: `SELECT machine_id, COUNT(*)\nFROM qc_tests\nWHERE result = 'FAIL'\nGROUP BY machine_id\nHAVING COUNT(*) > ${k};`,
+      broken: `SELECT machine_id, COUNT(*)\nFROM qc_tests\nWHERE result = 'FAIL'\n  AND COUNT(*) > ${k}\nGROUP BY machine_id;`,
+      hint: 'WHERE filters rows before grouping, so it cannot use COUNT(). HAVING filters the groups afterward.' };
+  } });
+  add({ id: 'qc-range', tier: 2, skill: 'date', gen(c) {
+    const mo = c.int(1, 10), d1 = c.int(1, 18), d2 = d1 + c.int(5, 9);
+    const a = ymd(2026, mo, d1), b = ymd(2026, mo, d2);
+    return { room: 'Department', prompt: `List QC tests from ${a} through ${b}, inclusive: id, machine_id, and test_name.`,
+      sql: `SELECT id, machine_id, test_name\nFROM qc_tests\nWHERE test_date BETWEEN '${a}' AND '${b}';`, broken: `SELECT id, machine_id, test_name\nFROM qc_tests\nWHERE test_date > '${a}' AND test_date < '${b}';`,
+      hint: 'BETWEEN includes both ends. Dates stored as YYYY-MM-DD text compare correctly.' };
+  } });
+  add({ id: 'monthly', tier: 2, skill: 'date', gen() {
+    return { room: 'Department', prompt: 'How many exams were done each month? Show the month as YYYY-MM and the count, in month order.', ordered: true,
+      sql: "SELECT strftime('%Y-%m', exam_date) AS month, COUNT(*)\nFROM exams\nGROUP BY month\nORDER BY month;", broken: "SELECT strftime('%m', exam_date) AS month, COUNT(*)\nFROM exams\nGROUP BY month\nORDER BY month;",
+      hint: "strftime('%Y-%m', date) or substr(date, 1, 7) pulls out the year and month." };
+  } });
+  add({ id: 'first-last', tier: 2, skill: 'aggregate', gen(c) {
+    const m = c.pickR(c.q('SELECT m.id, m.name, m.modality FROM machines m WHERE EXISTS (SELECT 1 FROM exams e WHERE e.machine_id = m.id)'));
+    return { room: m.modality, prompt: `What are the first and last exam dates on ${m.name} (machine_id ${m.id})?`,
+      sql: `SELECT MIN(exam_date), MAX(exam_date)\nFROM exams\nWHERE machine_id = ${m.id};`, hint: 'MIN and MAX work on dates stored as YYYY-MM-DD text.' };
+  } });
+  add({ id: 'overdue', tier: 2, skill: 'date', gen() {
+    return { room: 'Department', prompt: "Annual surveys are due every 12 months. Today is 2026-10-28. Which machines have an 'Annual survey' dated before 2025-10-28? Show machine_id and test_date.",
+      sql: "SELECT machine_id, test_date\nFROM qc_tests\nWHERE test_name = 'Annual survey'\n  AND test_date < '2025-10-28';", broken: "SELECT machine_id, test_date\nFROM qc_tests\nWHERE test_name = 'Annual Survey'\n  AND test_date < '2025-10-28';",
+      hint: "Filter on test_name, then compare test_date to '2025-10-28'. Watch capitalization." };
+  } });
+  add({ id: 'distinct-techs', tier: 2, skill: 'count', gen(c) {
+    const m = c.pick(c.monthsWithData());
+    return { room: 'Department', prompt: `How many different technologists performed exams in ${c.monthName(m)}?`,
+      sql: `SELECT COUNT(DISTINCT tech_id)\nFROM exams\nWHERE exam_date LIKE '${m}%';`, broken: `SELECT COUNT(tech_id)\nFROM exams\nWHERE exam_date LIKE '${m}%';`,
+      hint: 'COUNT(DISTINCT col) counts unique values instead of rows.' };
+  } });
+  add({ id: 'null-measured', tier: 2, skill: 'null', gen() {
+    return { room: 'Department', prompt: 'Some QC tests have no measured_value. For each test_name with missing values, show the test_name and how many are missing.',
+      sql: 'SELECT test_name, COUNT(*)\nFROM qc_tests\nWHERE measured_value IS NULL\nGROUP BY test_name;', broken: 'SELECT test_name, COUNT(measured_value)\nFROM qc_tests\nWHERE measured_value IS NULL\nGROUP BY test_name;',
+      hint: 'COUNT(column) skips NULLs, so counting a column of NULLs gives 0. Use COUNT(*).' };
+  } });
+
+  // ===== Tier 3 =====
+  add({ id: 'fail-names', tier: 3, skill: 'join', gen(c) {
+    const m = c.mod(MODS);
+    return { room: m, prompt: `List every failed QC test on a ${m} unit: the machine name, test_name, and test_date.`,
+      sql: `SELECT m.name, q.test_name, q.test_date\nFROM qc_tests q\nJOIN machines m ON m.id = q.machine_id\nWHERE m.modality = '${m}'\n  AND q.result = 'FAIL';`,
+      broken: `SELECT m.name, q.test_name, q.test_date\nFROM qc_tests q\nJOIN machines m\nWHERE m.modality = '${m}'\n  AND q.result = 'FAIL';`,
+      hint: 'A JOIN needs ON to say which rows match. Without it, every test pairs with every machine.' };
+  } });
+  add({ id: 'who-tested', tier: 3, skill: 'join', gen(c) {
+    const t = c.pickR(c.q("SELECT test_name, MIN(m.modality) AS mod FROM qc_tests q JOIN machines m ON m.id=q.machine_id WHERE test_name <> 'Annual survey' AND test_name <> 'HVL' GROUP BY test_name"));
+    return { room: t.mod, prompt: `Who performed each '${t.test_name}' test? Show the staff member's name and the test_date.`,
+      sql: `SELECT s.name, q.test_date\nFROM qc_tests q\nJOIN staff s ON s.id = q.performed_by\nWHERE q.test_name = '${t.test_name}';`,
+      broken: `SELECT s.name, q.test_date\nFROM qc_tests q\nJOIN staff s ON s.id = q.machine_id\nWHERE q.test_name = '${t.test_name}';`,
+      hint: 'performed_by holds a staff id. Match it to staff.id.' };
+  } });
+  add({ id: 'exam-count-machine', tier: 3, skill: 'leftjoin', gen(c) {
+    const m = c.mod(MODS);
+    return { room: m, prompt: `For each ${m} unit, show its name and how many exams it ran. Units with no exams should show 0.`,
+      sql: `SELECT m.name, COUNT(e.id)\nFROM machines m\nLEFT JOIN exams e ON e.machine_id = m.id\nWHERE m.modality = '${m}'\nGROUP BY m.id;`,
+      broken: `SELECT m.name, COUNT(*)\nFROM machines m\nLEFT JOIN exams e ON e.machine_id = m.id\nWHERE m.modality = '${m}'\nGROUP BY m.id;`,
+      hint: 'LEFT JOIN keeps machines with no exams. COUNT(e.id) then counts 0 for them, while COUNT(*) counts the empty row as 1.' };
+  } });
+  add({ id: 'no-qc', tier: 3, skill: 'leftjoin', gen() {
+    return { room: 'Department', prompt: 'Which machines have no QC tests logged at all? Show their names.',
+      sql: 'SELECT m.name\nFROM machines m\nLEFT JOIN qc_tests q ON q.machine_id = m.id\nWHERE q.id IS NULL;', broken: 'SELECT m.name\nFROM machines m\nJOIN qc_tests q ON q.machine_id = m.id\nWHERE q.id IS NULL;',
+      hint: 'An inner JOIN drops machines with no tests. LEFT JOIN keeps them, with NULLs where the test would be.' };
+  } });
+  add({ id: 'exam-day', tier: 3, skill: 'join3', gen(c) {
+    const d = c.pickR(c.q('SELECT exam_date AS d FROM exams GROUP BY exam_date HAVING COUNT(*) BETWEEN 2 AND 6')).d;
+    return { room: 'Department', prompt: `List every exam on ${d}: exam id, machine name, and protocol name.`,
+      sql: `SELECT e.id, m.name, p.name\nFROM exams e\nJOIN machines m ON m.id = e.machine_id\nJOIN protocols p ON p.id = e.protocol_id\nWHERE e.exam_date = '${d}';`,
+      broken: `SELECT e.id, m.name, p.name\nFROM exams e\nJOIN machines m ON m.id = e.machine_id\nJOIN protocols p ON p.id = e.machine_id\nWHERE e.exam_date = '${d}';`,
+      hint: 'Chain two JOINs: exams to machines, then exams to protocols.' };
+  } });
+  add({ id: 'busy-techs', tier: 3, skill: 'having', gen(c) {
+    const counts = c.q('SELECT COUNT(*) AS n FROM exams GROUP BY tech_id ORDER BY n DESC').map((x) => x.n);
+    const dv = [...new Set(counts)];
+    const k = dv.length > 1 ? dv[Math.min(c.int(1, 2), dv.length - 1)] : dv[0] - 1;
+    return { room: 'Department', prompt: `Which technologists performed more than ${k} exams? Show their name and exam count.`,
+      sql: `SELECT s.name, COUNT(*)\nFROM exams e\nJOIN staff s ON s.id = e.tech_id\nGROUP BY s.id\nHAVING COUNT(*) > ${k};`,
+      broken: `SELECT s.name, COUNT(*)\nFROM exams e\nJOIN staff s ON s.id = e.tech_id\nGROUP BY s.id\nHAVING COUNT(*) >= ${k};`,
+      hint: 'JOIN exams to staff, GROUP BY the technologist, then filter groups with HAVING. "More than" means >.' };
+  } });
+  add({ id: 'tech-qc', tier: 3, skill: 'leftjoin', gen(c) {
+    const m = c.mod(MODS);
+    return { room: m, prompt: `For each ${m} technologist, show their name and how many QC tests they performed. Include anyone with zero.`,
+      sql: `SELECT s.name, COUNT(q.id)\nFROM staff s\nLEFT JOIN qc_tests q ON q.performed_by = s.id\nWHERE s.role = 'Technologist'\n  AND s.modality = '${m}'\nGROUP BY s.id;`,
+      hint: 'Start FROM staff and LEFT JOIN qc_tests so everyone stays in the result.' };
+  } });
+  add({ id: 'proto-avg-names', tier: 3, skill: 'join', gen(c) {
+    const m = c.mod(DOSE_MODS);
+    return { room: m, prompt: `Show the average dose_mgy for each ${m} protocol, by protocol name, rounded to 1 decimal.`,
+      sql: `SELECT p.name, ROUND(AVG(e.dose_mgy), 1)\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\nGROUP BY p.id;`,
+      broken: `SELECT p.name, ROUND(AVG(e.dose_mgy), 1)\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\nGROUP BY p.modality;`,
+      hint: 'JOIN exams to protocols to get names, then GROUP BY protocol, not modality.' };
+  } });
+  add({ id: 'maker-fails', tier: 3, skill: 'join', gen() {
+    return { room: 'Department', prompt: 'For each manufacturer, how many failed QC tests have their machines had? Show manufacturer and count, most failures first.', ordered: true,
+      sql: "SELECT m.manufacturer, COUNT(*) AS fails\nFROM qc_tests q\nJOIN machines m ON m.id = q.machine_id\nWHERE q.result = 'FAIL'\nGROUP BY m.manufacturer\nORDER BY fails DESC, m.manufacturer;",
+      broken: "SELECT m.manufacturer, COUNT(*) AS fails\nFROM qc_tests q\nJOIN machines m ON m.id = q.machine_id\nWHERE q.result = 'FAIL'\nGROUP BY m.manufacturer\nORDER BY fails, m.manufacturer;",
+      hint: 'Join, filter to FAIL, group by manufacturer, then ORDER BY the count descending. Break ties alphabetically.' };
+  } });
+
+  // ===== Tier 4 =====
+  add({ id: 'above-drl', tier: 4, skill: 'compare', gen(c) {
+    const m = c.mod(DOSE_MODS);
+    return { room: m, prompt: `Which ${m} exams exceeded their protocol's reference level? Show exam id, protocol name, dose_mgy, and drl_mgy.`,
+      sql: `SELECT e.id, p.name, e.dose_mgy, p.drl_mgy\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\n  AND e.dose_mgy > p.drl_mgy;`,
+      broken: `SELECT e.id, p.name, e.dose_mgy, p.drl_mgy\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\n  AND e.dose_mgy > (SELECT AVG(drl_mgy) FROM protocols);`,
+      hint: "Compare each exam's dose to its own protocol's drl_mgy, which the JOIN puts on the same row." };
+  } });
+  add({ id: 'drl-case', tier: 4, skill: 'case', gen(c) {
+    const m = c.mod(DOSE_MODS);
+    return { room: m, prompt: `Label each ${m} exam 'above DRL' or 'within DRL' (exactly those words), then show each label and how many exams have it.`,
+      sql: `SELECT CASE WHEN e.dose_mgy > p.drl_mgy THEN 'above DRL'\n            ELSE 'within DRL' END AS label,\n       COUNT(*)\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\nGROUP BY label;`,
+      hint: 'CASE WHEN condition THEN a ELSE b END builds the label. Then GROUP BY that label.' };
+  } });
+  add({ id: 'above-proto-avg', tier: 4, skill: 'subquery', gen(c) {
+    const p = c.pickR(c.q('SELECT id, modality, name FROM protocols WHERE drl_mgy IS NOT NULL'));
+    return { room: p.modality, prompt: `Which exams on protocol ${p.id} (${p.modality} "${p.name}") had a dose above that protocol's average? Show exam id and dose_mgy.`,
+      sql: `SELECT id, dose_mgy\nFROM exams\nWHERE protocol_id = ${p.id}\n  AND dose_mgy > (SELECT AVG(dose_mgy)\n                  FROM exams\n                  WHERE protocol_id = ${p.id});`,
+      broken: `SELECT id, dose_mgy\nFROM exams\nWHERE protocol_id = ${p.id}\n  AND dose_mgy > (SELECT AVG(dose_mgy) FROM exams);`,
+      hint: 'The subquery has to average only this protocol, so it needs its own WHERE.' };
+  } });
+  add({ id: 'failed-test-machines', tier: 4, skill: 'subquery', gen(c) {
+    const t = c.pickR(c.q("SELECT test_name, MIN(m.modality) AS mod FROM qc_tests q JOIN machines m ON m.id=q.machine_id WHERE result='FAIL' AND test_name <> 'HVL' GROUP BY test_name"));
+    return { room: t.mod, prompt: `List the names of machines that have failed at least one '${t.test_name}' test. Each machine once.`,
+      sql: `SELECT name\nFROM machines\nWHERE id IN (SELECT machine_id\n             FROM qc_tests\n             WHERE test_name = '${t.test_name}'\n               AND result = 'FAIL');`,
+      broken: `SELECT m.name\nFROM machines m\nJOIN qc_tests q ON q.machine_id = m.id\nWHERE q.test_name = '${t.test_name}'\n  AND q.result = 'FAIL';`,
+      hint: 'A machine that failed twice shows up twice in a JOIN. Use WHERE id IN (subquery) or DISTINCT.' };
+  } });
+  add({ id: 'no-qc-staff', tier: 4, skill: 'subquery', gen() {
+    return { room: 'Department', prompt: 'Which staff members have never performed a QC test? Show name and role.',
+      sql: 'SELECT name, role\nFROM staff\nWHERE id NOT IN (SELECT performed_by FROM qc_tests);', broken: 'SELECT name, role\nFROM staff\nWHERE id NOT IN (SELECT machine_id FROM qc_tests);', hint: 'NOT IN (subquery) keeps rows whose id never appears in the list.' };
+  } });
+  add({ id: 'fail-rate', tier: 4, skill: 'case', gen() {
+    return { room: 'Department', prompt: 'For each modality, what percent of QC tests failed? Show modality and the percent, rounded to 1 decimal.',
+      sql: "SELECT m.modality,\n       ROUND(100.0 * SUM(CASE WHEN q.result = 'FAIL' THEN 1 ELSE 0 END) / COUNT(*), 1)\nFROM qc_tests q\nJOIN machines m ON m.id = q.machine_id\nGROUP BY m.modality;",
+      broken: "SELECT m.modality,\n       100 * SUM(CASE WHEN q.result = 'FAIL' THEN 1 ELSE 0 END) / COUNT(*)\nFROM qc_tests q\nJOIN machines m ON m.id = q.machine_id\nGROUP BY m.modality;",
+      hint: 'Integer divided by integer drops the decimals in SQLite. Multiply by 100.0 to force decimal math.' };
+  } });
+  add({ id: 'never-imaged', tier: 4, skill: 'subquery', gen(c) {
+    const m = c.mod(DOSE_MODS);
+    return { room: m, prompt: `Which ${m} protocols were never used on a machine in the West wing (room codes start with 'WS-')? Show the protocol name.`,
+      sql: `SELECT name\nFROM protocols\nWHERE modality = '${m}'\n  AND id NOT IN (SELECT e.protocol_id\n                 FROM exams e\n                 JOIN machines m ON m.id = e.machine_id\n                 WHERE m.room LIKE 'WS-%');`,
+      hint: 'Build the list of protocol ids used in the West wing in a subquery, then use NOT IN.', allowEmpty: true };
+  } });
+
+  // ===== Tier 5 =====
+  add({ id: 'rank-busy', tier: 5, skill: 'window', gen(c) {
+    const m = c.mod(['CT', 'Radiography', 'MRI', 'Mammo']);
+    return { room: m, prompt: `Rank the ${m} units by number of exams, busiest first. Show name, exam count, and rank, where ties share a rank. Only units with exams.`,
+      sql: `SELECT m.name, COUNT(*) AS n,\n       RANK() OVER (ORDER BY COUNT(*) DESC) AS rnk\nFROM exams e\nJOIN machines m ON m.id = e.machine_id\nWHERE m.modality = '${m}'\nGROUP BY m.id;`,
+      broken: `SELECT m.name, COUNT(*) AS n,\n       RANK() OVER (ORDER BY COUNT(*)) AS rnk\nFROM exams e\nJOIN machines m ON m.id = e.machine_id\nWHERE m.modality = '${m}'\nGROUP BY m.id;`,
+      hint: 'RANK() OVER (ORDER BY ...) numbers rows after grouping. Busiest first means descending.' };
+  } });
+  add({ id: 'running', tier: 5, skill: 'window', gen(c) {
+    const m = c.pickR(c.q('SELECT m.id, m.name, m.modality FROM machines m WHERE (SELECT COUNT(*) FROM exams e WHERE e.machine_id=m.id) > 15'));
+    return { room: m.modality, prompt: `For ${m.name} (machine_id ${m.id}), show each month (YYYY-MM), that month's exam count, and a running total through the year, in month order.`, ordered: true,
+      sql: `SELECT strftime('%Y-%m', exam_date) AS month,\n       COUNT(*) AS n,\n       SUM(COUNT(*)) OVER (ORDER BY strftime('%Y-%m', exam_date)) AS running\nFROM exams\nWHERE machine_id = ${m.id}\nGROUP BY month\nORDER BY month;`,
+      broken: `SELECT strftime('%Y-%m', exam_date) AS month,\n       COUNT(*) AS n,\n       SUM(COUNT(*)) OVER () AS running\nFROM exams\nWHERE machine_id = ${m.id}\nGROUP BY month\nORDER BY month;`,
+      hint: 'OVER () sums the whole result. SUM(...) OVER (ORDER BY month) adds up only through the current row.' };
+  } });
+  add({ id: 'lag', tier: 5, skill: 'window', gen(c) {
+    const t = c.pickR(c.q("SELECT q.machine_id, m.name, m.modality, q.test_name FROM qc_tests q JOIN machines m ON m.id=q.machine_id WHERE q.measured_value IS NOT NULL GROUP BY q.machine_id, q.test_name HAVING COUNT(*) >= 3"));
+    return { room: t.modality, prompt: `For ${t.name}'s '${t.test_name}' tests, show test_date, measured_value, and the change from the previous test (empty for the first), in date order.`, ordered: true,
+      sql: `SELECT test_date, measured_value,\n       measured_value - LAG(measured_value) OVER (ORDER BY test_date) AS change\nFROM qc_tests\nWHERE machine_id = ${t.machine_id}\n  AND test_name = '${t.test_name}'\nORDER BY test_date;`,
+      broken: `SELECT test_date, measured_value,\n       measured_value - LEAD(measured_value) OVER (ORDER BY test_date) AS change\nFROM qc_tests\nWHERE machine_id = ${t.machine_id}\n  AND test_name = '${t.test_name}'\nORDER BY test_date;`,
+      hint: "LAG(col) OVER (ORDER BY date) gives the previous row's value. LEAD gives the next one." };
+  } });
+  add({ id: 'top-dose', tier: 5, skill: 'window', gen() {
+    return { room: 'Department', prompt: 'For each modality with dose data, show the single highest-dose exam: modality, exam id, and dose_mgy.',
+      sql: "SELECT modality, id, dose_mgy\nFROM (SELECT m.modality, e.id, e.dose_mgy,\n             ROW_NUMBER() OVER (PARTITION BY m.modality\n                                ORDER BY e.dose_mgy DESC) AS rn\n      FROM exams e\n      JOIN machines m ON m.id = e.machine_id\n      WHERE e.dose_mgy IS NOT NULL)\nWHERE rn = 1;",
+      broken: "SELECT modality, id, dose_mgy\nFROM (SELECT m.modality, e.id, e.dose_mgy,\n             ROW_NUMBER() OVER (PARTITION BY m.modality\n                                ORDER BY e.dose_mgy) AS rn\n      FROM exams e\n      JOIN machines m ON m.id = e.machine_id\n      WHERE e.dose_mgy IS NOT NULL)\nWHERE rn = 1;",
+      hint: 'ROW_NUMBER() OVER (PARTITION BY modality ORDER BY dose DESC) numbers each modality separately. Keep row 1.' };
+  } });
+  add({ id: 'cte-fails', tier: 5, skill: 'cte', gen() {
+    return { room: 'Department', prompt: 'Among machines with at least one failed QC test, which have more failures than the average for that group? Show machine name and failure count.',
+      sql: "WITH f AS (\n  SELECT machine_id, COUNT(*) AS n\n  FROM qc_tests\n  WHERE result = 'FAIL'\n  GROUP BY machine_id\n)\nSELECT m.name, f.n\nFROM f\nJOIN machines m ON m.id = f.machine_id\nWHERE f.n > (SELECT AVG(n) FROM f);",
+      hint: 'WITH name AS (...) makes a temporary table you can use twice: once to list machines, once to average.' };
+  } });
+  add({ id: 'tech-vs-avg', tier: 5, skill: 'cte', gen(c) {
+    const p = c.pickR(c.q('SELECT id, modality, name FROM protocols WHERE drl_mgy IS NOT NULL'));
+    return { room: p.modality, prompt: `For protocol ${p.id} (${p.modality} "${p.name}"), which technologists have an average dose above the protocol's overall average? Show name and their average, rounded to 1 decimal.`,
+      sql: `WITH t AS (\n  SELECT tech_id, AVG(dose_mgy) AS avg_dose\n  FROM exams\n  WHERE protocol_id = ${p.id}\n  GROUP BY tech_id\n)\nSELECT s.name, ROUND(t.avg_dose, 1)\nFROM t\nJOIN staff s ON s.id = t.tech_id\nWHERE t.avg_dose > (SELECT AVG(dose_mgy) FROM exams WHERE protocol_id = ${p.id});`,
+      broken: `WITH t AS (\n  SELECT tech_id, AVG(dose_mgy) AS avg_dose\n  FROM exams\n  WHERE protocol_id = ${p.id}\n  GROUP BY tech_id\n)\nSELECT s.name, ROUND(t.avg_dose, 1)\nFROM t\nJOIN staff s ON s.id = t.tech_id\nWHERE t.avg_dose > (SELECT AVG(dose_mgy) FROM exams);`,
+      hint: 'Average per technologist in a CTE, then compare to the overall average for this protocol only.', allowEmpty: true };
+  } });
+  add({ id: 'pct-of-total', tier: 5, skill: 'window', gen(c) {
+    const m = c.mod(DOSE_MODS);
+    return { room: m, prompt: `For ${m}, show each protocol name, its exam count, and its share of all ${m} exams as a percent rounded to 1 decimal.`,
+      sql: `SELECT p.name, COUNT(*) AS n,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS pct\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\nGROUP BY p.id;`,
+      broken: `SELECT p.name, COUNT(*) AS n,\n       ROUND(100 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS pct\nFROM exams e\nJOIN protocols p ON p.id = e.protocol_id\nWHERE p.modality = '${m}'\nGROUP BY p.id;`,
+      hint: 'SUM(COUNT(*)) OVER () totals across all groups. Use 100.0 so the division keeps decimals.' };
+  } });
+
+  // ===== Predict (mental evaluation on a small sample) =====
+  function sampleRows(c, withNull) {
+    const m = c.pickR(c.q("SELECT m.id, m.modality FROM machines m WHERE EXISTS (SELECT 1 FROM qc_tests q WHERE q.machine_id=m.id AND q.result='FAIL')"));
+    const all = c.q(`SELECT id, test_name, test_date, result, measured_value FROM qc_tests WHERE machine_id=${m.id} AND test_name <> 'Annual survey'`);
+    const survey = c.q(`SELECT id, test_name, test_date, result, measured_value FROM qc_tests WHERE machine_id=${m.id} AND test_name = 'Annual survey'`);
+    let rows = c.shuffle(all).slice(0, withNull ? 5 : 6);
+    if (withNull && survey.length) rows.push(survey[0]);
+    if (!rows.some((x) => x.result === 'FAIL')) { const f = all.find((x) => x.result === 'FAIL'); if (f) rows[0] = f; }
+    rows.sort((a, b) => a.test_date.localeCompare(b.test_date));
+    return { room: m.modality, ids: rows.map((x) => x.id) };
+  }
+  add({ id: 'p-count-fail', tier: 1, skill: 'where', predict: true, gen(c) {
+    const s = sampleRows(c, false);
+    return { room: s.room, ids: s.ids, query: "SELECT COUNT(*)\nFROM sample\nWHERE result = 'FAIL';", prompt: 'What number does this query return?', hint: 'Count the rows where result is FAIL.' };
+  } });
+  add({ id: 'p-count-null', tier: 2, skill: 'null', predict: true, gen(c) {
+    const s = sampleRows(c, true);
+    return { room: s.room, ids: s.ids, query: 'SELECT COUNT(measured_value)\nFROM sample;', prompt: 'What number does this query return?', hint: 'COUNT(column) skips NULL values.' };
+  } });
+  add({ id: 'p-distinct', tier: 2, skill: 'distinct', predict: true, gen(c) {
+    const s = sampleRows(c, false);
+    return { room: s.room, ids: s.ids, query: 'SELECT COUNT(DISTINCT test_name)\nFROM sample;', prompt: 'What number does this query return?', hint: 'Count how many different test names appear.' };
+  } });
+  add({ id: 'p-having', tier: 3, skill: 'having', predict: true, gen(c) {
+    const s = sampleRows(c, false);
+    return { room: s.room, ids: s.ids, query: 'SELECT COUNT(*)\nFROM (SELECT test_name\n      FROM sample\n      GROUP BY test_name\n      HAVING COUNT(*) > 1);', prompt: 'What number does this query return?', hint: 'The inner query keeps test names that appear more than once. The outer query counts them.' };
+  } });
+  add({ id: 'p-max', tier: 2, skill: 'aggregate', predict: true, gen(c) {
+    const s = sampleRows(c, false);
+    return { room: s.room, ids: s.ids, query: "SELECT MAX(test_date)\nFROM sample\nWHERE result = 'PASS';", prompt: 'What does this query return? Type the date as YYYY-MM-DD.', hint: 'Look only at PASS rows, then take the latest date.' };
+  } });
+
+  // ---------- rooms each template can appear in ----------
+  const ROOM_SETS = {
+    dept: 'oldest wing two-mods oos staff-role manufacturers no-modality fails-month result-counts fail-having qc-range monthly overdue distinct-techs null-measured no-qc exam-day busy-techs maker-fails no-qc-staff fail-rate top-dose cte-fails',
+    mods: 'mod-list first-last fail-names who-tested exam-count-machine tech-qc failed-test-machines running lag p-count-fail p-count-null p-distinct p-having p-max',
+    dose: 'high-dose young proto-avg proto-stats proto-avg-names above-drl drl-case above-proto-avg never-imaged tech-vs-avg pct-of-total',
+  };
+  const ROOMS_OF = { 'rank-busy': ['CT', 'Radiography', 'MRI', 'Mammo'] };
+  ROOM_SETS.dept.split(' ').forEach((id) => { ROOMS_OF[id] = ['Department']; });
+  ROOM_SETS.mods.split(' ').forEach((id) => { ROOMS_OF[id] = MODS.slice(); });
+  ROOM_SETS.dose.split(' ').forEach((id) => { ROOMS_OF[id] = DOSE_MODS.slice(); });
+  T.forEach((t) => { t.rooms = ROOMS_OF[t.id]; if (!t.rooms) throw new Error('no rooms for ' + t.id); });
+
+  // ---------- comparison ----------
+  function cellKey(v) {
+    if (v === null || v === undefined) return '∅';
+    if (typeof v === 'number') return String(Math.round(v * 10) / 10);
+    if (v instanceof Uint8Array) return '[blob]';
+    return String(v).trim();
+  }
+  const rowKey = (row) => row.map(cellKey).join('␟');
+
+  function compare(expected, got, ordered) {
+    if (got.error) return { ok: false, reason: 'error', message: got.error };
+    const ec = expected.columns.length, gc = got.columns.length;
+    if (gc === 0 && expected.rows.length) return { ok: false, reason: 'norows', message: "Your query didn't return a result table." };
+    if (ec !== gc) return { ok: false, reason: 'cols', message: `Expected ${ec} column${ec === 1 ? '' : 's'}, got ${gc}.` };
+    const ek = expected.rows.map(rowKey), gk = got.rows.map(rowKey);
+    // multiset diff
+    const pool = new Map(); ek.forEach((k) => pool.set(k, (pool.get(k) || 0) + 1));
+    const gotMarks = gk.map((k) => { const n = pool.get(k) || 0; if (n > 0) { pool.set(k, n - 1); return 'ok'; } return 'extra'; });
+    const pool2 = new Map(); gk.forEach((k) => pool2.set(k, (pool2.get(k) || 0) + 1));
+    const expMarks = ek.map((k) => { const n = pool2.get(k) || 0; if (n > 0) { pool2.set(k, n - 1); return 'ok'; } return 'missing'; });
+    const extra = gotMarks.filter((x) => x === 'extra').length, missing = expMarks.filter((x) => x === 'missing').length;
+    if (extra || missing) {
+      const parts = [];
+      if (missing) parts.push(`${missing} expected row${missing === 1 ? ' is' : 's are'} missing`);
+      if (extra) parts.push(`${extra} row${extra === 1 ? '' : 's'} shouldn't be there`);
+      return { ok: false, reason: 'rows', message: parts.join(', and ') + '.', gotMarks, expMarks };
+    }
+    if (ordered && ek.join('\n') !== gk.join('\n')) return { ok: false, reason: 'order', message: 'Right rows, wrong order.', gotMarks, expMarks };
+    return { ok: true };
+  }
+
+  function makeTicket(SQL, bytes, template, seed, typePref, room) {
+    const r = mulberry32(seed);
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const c = ctxFor(SQL, bytes, r, room);
+      let g;
+      try { g = template.gen(c); } catch (e) { c.close(); if (typeof DEBUG_GEN !== "undefined") console.log("gen err", template.id, e.message); continue; }
+      if (template.predict) {
+        const d = new SQL.Database(bytes);
+        let sample, ans;
+        try {
+          d.run(`CREATE TABLE sample AS SELECT id, test_name, test_date, result, measured_value FROM qc_tests WHERE id IN (${g.ids.join(',')}) ORDER BY test_date`);
+          sample = d.exec('SELECT * FROM sample')[0];
+          ans = d.exec(g.query)[0].values[0][0];
+        } finally { d.close(); c.close(); }
+        return { template, type: 'predict', room: g.room, prompt: g.prompt, query: g.query, sample: { columns: sample.columns, rows: sample.values }, answer: ans, hint: g.hint };
+      }
+      c.close();
+      const expected = runOn(SQL, bytes, g.sql);
+      if (expected.error) { if (typeof console !== 'undefined') console.warn('template error', template.id, expected.error); continue; }
+      if (!expected.rows.length && !(g.allowEmpty && attempt >= 8)) continue;
+      let type = typePref || 'write';
+      if (!typePref) {
+        const x = r();
+        if (g.broken && x < 0.3) type = 'fix';
+        else if (x > 0.78 && expected.rows.length && expected.rows.length <= 12) type = 'match';
+      }
+      if (type === 'fix') {
+        if (!g.broken) type = 'write';
+        else {
+          const b = runOn(SQL, bytes, g.broken);
+          if (!b.error && compare(expected, b, g.ordered).ok) type = 'write';
+        }
+      }
+      if (type === 'match' && !(expected.rows.length && expected.rows.length <= 12)) type = 'write';
+      return { template, type, room: g.room, prompt: g.prompt, sql: g.sql, broken: g.broken, ordered: !!g.ordered, expected, hint: g.hint };
+    }
+    return null;
+  }
+
+  function checkPredict(ticket, input) {
+    const a = ticket.answer, s = String(input).trim();
+    if (!s) return false;
+    if (typeof a === 'number') { const n = Number(s); return Number.isFinite(n) && Math.abs(n - a) < 0.051; }
+    return s.toLowerCase() === String(a).toLowerCase();
+  }
+
+  const SKILLS = {
+    where: 'WHERE filters', order: 'ORDER BY and LIMIT', like: 'LIKE patterns', in: 'IN lists', null: 'NULL handling', distinct: 'DISTINCT',
+    count: 'COUNT', aggregate: 'AVG, MIN, MAX', groupby: 'GROUP BY', having: 'HAVING', date: 'Dates',
+    join: 'JOIN', leftjoin: 'LEFT JOIN', join3: 'Multi-table joins', compare: 'Cross-table comparisons', case: 'CASE WHEN', subquery: 'Subqueries',
+    window: 'Window functions', cte: 'CTEs (WITH)',
+  };
+
+  const api = { ROOMS: ['CT', 'MRI', 'Mammo', 'Fluoro', 'Radiography', 'Department'], mulberry32, generate, runOn, makeTicket, compare, checkPredict, TEMPLATES: T, SKILLS, TABLE_NOTES, MODS, rowKey };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Engine = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+  const E = window.Engine;
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ROOM_VAR = { CT: '--ct', MRI: '--mri', Mammo: '--mammo', Fluoro: '--fluoro', Radiography: '--rad', Department: '--dept' };
+  const ROOM_LABEL = { CT: 'CT', MRI: 'MRI', Mammo: 'Mammography', Fluoro: 'Fluoroscopy', Radiography: 'Radiography', Department: 'Physics office' };
+  const ROOM_TIER = { Radiography: 1, CT: 1, Department: 1, MRI: 2, Mammo: 3, Fluoro: 4 };
+  const TYPE_LABEL = { write: 'Write it', fix: 'Fix it', match: 'Match it', predict: 'Predict it' };
+  const KEY = 'physicsShift.v1';
+
+  // ---------- persistent state ----------
+  const fresh = () => ({ seed: Math.floor(Math.random() * 1e9), tier: 1, maxTier: 1, tierMode: 'auto', streak: 0, best: 0, solved: 0, clean: 0, graded: 0, skills: {}, rooms: {}, history: [], inbox: [], inboxSeed: null, theme: null });
+  let S = fresh();
+  try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
+  S.maxTier = Math.max(S.maxTier || 1, S.tier);
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  // ---------- theme ----------
+  const themeBtn = $('#btnTheme');
+  const isDark = () => { const a = document.documentElement.getAttribute('data-theme'); return a ? a === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches; };
+  function applyTheme() { if (S.theme) document.documentElement.setAttribute('data-theme', S.theme); themeBtn.textContent = isDark() ? 'Lights on' : 'Reading room'; }
+  themeBtn.addEventListener('click', () => { S.theme = isDark() ? 'light' : 'dark'; save(); applyTheme(); });
+  applyTheme();
+
+  let SQL, bytes, staff = [], schema = {}, ticket = null, cm = null, last = [], view = 'map', focus = null;
+  const freshIds = new Set();
+  const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tk = { firstTry: true, revealed: false, hinted: false, recorded: false, solved: false };
+
+  function toast(msg) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2800);
+  }
+  const pct = (v) => (v && v.n ? Math.round((100 * v.ok) / v.n) : null);
+
+  function updateStats() {
+    $('#sTier').textContent = S.tierMode === 'auto' ? S.tier : S.tierMode;
+    $('#sStreak').textContent = S.streak;
+    $('#sSolved').textContent = S.solved;
+    $('#sAcc').textContent = S.graded ? Math.round((100 * S.clean) / S.graded) + '%' : '–';
+    $('#tierMode').value = S.tierMode;
+  }
+
+  function loadHospital() {
+    bytes = E.generate(SQL, S.seed);
+    const d = new SQL.Database(bytes);
+    staff = d.exec('SELECT id, name, role, modality FROM staff')[0].values.map((v) => ({ id: v[0], name: v[1], role: v[2], modality: v[3] }));
+    schema = {};
+    ['machines', 'qc_tests', 'exams', 'protocols', 'staff'].forEach((t) => {
+      const cols = d.exec(`PRAGMA table_info(${t})`)[0].values.map((v) => ({ name: v[1], type: v[2] }));
+      schema[t] = { cols, n: d.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0] };
+    });
+    d.close();
+    if (S.inboxSeed !== S.seed) { S.inbox = []; S.inboxSeed = S.seed; }
+  }
+
+  // ---------- rooms and the inbox ----------
+  const unlocked = (room) => S.tierMode !== 'auto' || ROOM_TIER[room] <= S.maxTier;
+  const openRooms = () => E.ROOMS.filter(unlocked);
+  const tierCap = () => (S.tierMode === 'auto' ? S.tier : Number(S.tierMode));
+
+  function weakSkills() {
+    const cap = tierCap();
+    return Object.entries(S.skills).filter(([k, v]) => v.n >= 2 && v.ok / v.n < 0.6 && E.TEMPLATES.some((t) => t.skill === k && t.tier <= cap)).map(([k]) => k);
+  }
+  function chooseTemplate(room, skill) {
+    const fits = (t) => t.rooms.some((r) => unlocked(r) && (!room || r === room));
+    const T = E.TEMPLATES.filter(fits);
+    if (skill) {
+      const cap = S.tierMode === 'auto' ? Math.max(S.tier, S.maxTier) : 5;
+      const all = T.filter((t) => t.skill === skill), inCap = all.filter((t) => t.tier <= cap);
+      const base = inCap.length ? inCap : all, nr = base.filter((t) => !last.includes(t.id)), q = nr.length ? nr : base;
+      return q.length ? q[Math.floor(Math.random() * q.length)] : null;
+    }
+    let pool;
+    if (S.tierMode !== 'auto') pool = T.filter((t) => t.tier === Number(S.tierMode));
+    else {
+      const x = Math.random(), tier = S.tier, weak = weakSkills();
+      if (weak.length && x < 0.25) pool = T.filter((t) => weak.includes(t.skill) && t.tier <= tier);
+      if (!pool || !pool.length) pool = x < 0.72 || tier === 1 ? T.filter((t) => t.tier === tier) : T.filter((t) => t.tier < tier);
+      if (!pool.length) pool = T.filter((t) => t.tier <= tier);
+    }
+    if (!pool.length) return null;
+    const notRecent = pool.filter((t) => !last.includes(t.id) && !S.inbox.some((s) => s.tid === t.id));
+    const p = notRecent.length ? notRecent : pool;
+    return p[Math.floor(Math.random() * p.length)];
+  }
+  function senderFor(room) {
+    const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+    if (room === 'Department') return pickOne(staff.filter((s) => s.role === 'Physicist'));
+    const techs = staff.filter((s) => s.modality === room);
+    return Math.random() < 0.3 ? pickOne(staff.filter((s) => s.role === 'Radiologist')) : pickOne(techs.length ? techs : staff);
+  }
+  function makeSpec(room, skill) {
+    for (let i = 0; i < 14; i++) {
+      const t = chooseTemplate(room, skill);
+      if (!t) return null;
+      const rooms = t.rooms.filter((r) => unlocked(r) && (!room || r === room));
+      const r = room || rooms[Math.floor(Math.random() * rooms.length)];
+      const seed = Math.floor(Math.random() * 1e9);
+      const k = E.makeTicket(SQL, bytes, t, seed, null, r);
+      if (!k) continue;
+      return { id: seed.toString(36) + i, tid: t.id, seed, room: r, type: k.type, tier: t.tier, skill: t.skill, prompt: k.type === 'match' ? 'Produce a target result table.' : k.prompt, from: senderFor(r).id };
+    }
+    return null;
+  }
+  function fillInbox() {
+    S.inbox = S.inbox.filter((s) => unlocked(s.room) && E.TEMPLATES.some((t) => t.id === s.tid) && (S.tierMode === 'auto' ? s.tier <= S.tier : s.tier === Number(S.tierMode)));
+    openRooms().forEach((r) => { if (!S.inbox.some((s) => s.room === r)) { const sp = makeSpec(r); if (sp) S.inbox.push(sp); } });
+    let guard = 0;
+    while (S.inbox.length < 8 && guard++ < 20) {
+      const sp = makeSpec();
+      if (sp && S.inbox.filter((s) => s.room === sp.room).length < 3) S.inbox.push(sp);
+    }
+    save();
+  }
+  function arrive() {
+    for (let i = 0; i < 6; i++) {
+      const sp = makeSpec();
+      if (sp && S.inbox.filter((s) => s.room === sp.room).length < 3) { S.inbox.push(sp); freshIds.add(sp.id); save(); return sp; }
+    }
+    return null;
+  }
+  function closeSpec(spec, announce) {
+    S.inbox = S.inbox.filter((s) => s.id !== spec.id);
+    const sp = arrive();
+    fillInbox();
+    if (announce && sp) toast(`New ticket in ${ROOM_LABEL[sp.room]}`);
+  }
+
+  // ---------- recording ----------
+  function record(ok) {
+    if (tk.recorded) return;
+    tk.recorded = true;
+    const sk = ticket.template.skill, room = ticket.room;
+    const v = S.skills[sk] || { n: 0, ok: 0 }; v.n++; if (ok) v.ok++; S.skills[sk] = v;
+    const rv = S.rooms[room] || { n: 0, ok: 0 }; rv.n++; if (ok) rv.ok++; S.rooms[room] = rv;
+    S.graded++; if (ok) { S.clean++; S.streak++; S.best = Math.max(S.best, S.streak); } else S.streak = 0;
+    if (S.tierMode === 'auto' && ticket.template.tier === S.tier) {
+      S.history.push(ok ? 1 : 0); S.history = S.history.slice(-5);
+      const sum = S.history.reduce((a, b) => a + b, 0);
+      if (S.history.length >= 5 && sum >= 4 && S.tier < 5) {
+        S.tier++; S.history = [];
+        const newly = E.ROOMS.filter((r) => ROOM_TIER[r] === S.tier && S.tier > S.maxTier);
+        S.maxTier = Math.max(S.maxTier, S.tier);
+        toast(newly.length ? `Promoted to tier ${S.tier}. ${newly.map((r) => ROOM_LABEL[r]).join(' and ')} unlocked.` : `Promoted to tier ${S.tier}.`);
+      } else if (S.history.length >= 5 && sum <= 1 && S.tier > 1) { S.tier--; S.history = []; toast(`Back to tier ${S.tier} for a few reps.`); }
+    }
+    save(); updateStats();
+  }
+
+  // ---------- shared rendering ----------
+  function tableHTML(columns, rows, marks, limit = 300) {
+    if (!columns.length) return '<div class="empty-res">No result table.</div>';
+    const shown = rows.slice(0, limit);
+    let h = '<div class="table-wrap"><table class="grid"><thead><tr>' + columns.map((c) => `<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>';
+    shown.forEach((r, i) => {
+      const cls = marks && marks[i] && marks[i] !== 'ok' ? ` class="${marks[i]}"` : '';
+      h += `<tr${cls}>` + r.map((v) => v === null ? '<td class="null">NULL</td>' : `<td>${esc(typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1e4) / 1e4 : v)}</td>`).join('') + '</tr>';
+    });
+    if (!rows.length) h += `<tr><td colspan="${columns.length}" class="null">0 rows</td></tr>`;
+    h += '</tbody></table></div>';
+    if (rows.length > limit) h += `<div class="res-meta">Showing ${limit} of ${rows.length} rows.</div>`;
+    return h;
+  }
+  function tablesIn(sql) {
+    const names = new Set(); const re = /\b(?:FROM|JOIN)\s+([a-z_]+)/gi; let m;
+    while ((m = re.exec(sql))) if (schema[m[1].toLowerCase()]) names.add(m[1].toLowerCase());
+    return [...names];
+  }
+  const roomStyle = (room) => `--room: var(${ROOM_VAR[room] || '--dept'})`;
+
+  // ---------- the department map ----------
+  const GEO = {
+    CT: { x: 20, y: 20, w: 300, h: 220, door: 110, side: 'b' },
+    MRI: { x: 320, y: 20, w: 360, h: 220, door: 70, side: 'b' },
+    Mammo: { x: 680, y: 20, w: 260, h: 220, door: 60, side: 'b' },
+    Fluoro: { x: 20, y: 320, w: 290, h: 220, door: 210, side: 't' },
+    Radiography: { x: 310, y: 320, w: 300, h: 220, door: 40, side: 't' },
+    Department: { x: 610, y: 320, w: 330, h: 220, door: 250, side: 't' },
+  };
+  const EQ = 'class="eq"';
+  function equipment(room, g) {
+    const { x, y, w, h } = g;
+    switch (room) {
+      case 'CT': { const gx = x + 170, cy = y + 140;
+        return `<rect ${EQ} x="${x + 48}" y="${cy - 13}" width="${gx - x - 48 + 70}" height="26" rx="5"/>
+          <rect ${EQ} x="${gx}" y="${cy - 52}" width="36" height="104" rx="12"/>
+          <ellipse class="eq-line" cx="${gx + 18}" cy="${cy}" rx="8" ry="30"/>
+          <path class="eq-line" d="M${x + w - 58} ${y + 70} v120"/><text class="eq-label" x="${x + w - 50}" y="${y + 84}">control</text>`; }
+      case 'MRI': { const mx = x + 150, cy = y + 135;
+        return `<ellipse class="gauss" cx="${mx + 65}" cy="${cy}" rx="128" ry="76"/>
+          <text class="eq-label" x="${mx + 65 + 92}" y="${cy - 66}">5 G line</text>
+          <rect ${EQ} x="${x + 40}" y="${cy - 11}" width="150" height="22" rx="5"/>
+          <rect ${EQ} x="${mx}" y="${cy - 48}" width="130" height="96" rx="20"/>
+          <rect class="eq-line" x="${mx + 10}" y="${cy - 18}" width="110" height="36" rx="16"/>
+          <text class="eq-label" x="${x + 16}" y="${y + h - 14}">Zone IV</text>`; }
+      case 'Mammo': { const cx = x + 150, cy = y + 140;
+        return `<circle ${EQ} cx="${cx}" cy="${cy}" r="26"/>
+          <rect ${EQ} x="${cx - 52}" y="${cy - 9}" width="104" height="18" rx="4"/>
+          <rect class="eq-line" x="${cx - 44}" y="${cy - 30}" width="88" height="10" rx="3"/>
+          <rect class="shield" x="${x + 40}" y="${y + 100}" width="8" height="70" rx="2"/><text class="eq-label" x="${x + 26}" y="${y + 190}">shield</text>`; }
+      case 'Fluoro': { const cx = x + 145, cy = y + 140;
+        return `<rect ${EQ} x="${x + 40}" y="${cy - 16}" width="200" height="32" rx="6"/>
+          <path class="carm" d="M${cx + 8} ${cy - 54} A 54 54 0 1 0 ${cx + 8} ${cy + 54}"/>
+          <rect ${EQ} x="${x + w - 60}" y="${y + 74}" width="34" height="22" rx="3"/><rect ${EQ} x="${x + w - 60}" y="${y + 100}" width="34" height="22" rx="3"/>`; }
+      case 'Radiography': { const cy = y + 145;
+        return `<path class="rail" d="M${x + 36} ${y + 92} H${x + w - 60} M${x + 36} ${y + 196} H${x + w - 60}"/>
+          <rect ${EQ} x="${x + 70}" y="${cy - 17}" width="150" height="34" rx="6"/>
+          <rect ${EQ} x="${x + 132}" y="${y + 84}" width="26" height="18" rx="3"/>
+          <rect ${EQ} x="${x + w - 34}" y="${cy - 40}" width="12" height="80" rx="3"/><text class="eq-label" x="${x + w - 92}" y="${cy + 60}">wall bucky</text>`; }
+      default: { return `<rect ${EQ} x="${x + 26}" y="${y + 96}" width="104" height="44" rx="4"/><rect class="eq-line" x="${x + 52}" y="${y + 102}" width="40" height="6"/>
+          <rect ${EQ} x="${x + 146}" y="${y + 96}" width="104" height="44" rx="4"/><rect class="eq-line" x="${x + 172}" y="${y + 102}" width="40" height="6"/>
+          <circle ${EQ} cx="${x + w - 56}" cy="${y + 168}" r="26"/><circle class="eq-line" cx="${x + w - 56}" cy="${y + 168}" r="14"/>
+          <text class="eq-label" x="${x + w - 90}" y="${y + 210}">water phantom</text>
+          <rect ${EQ} x="${x + 26}" y="${y + 172}" width="160" height="16" rx="3"/><text class="eq-label" x="${x + 26}" y="${y + 206}">dosimeter shelf</text>`; }
+    }
+  }
+  function roomInfo(room) {
+    const open = S.inbox.filter((s) => s.room === room).length;
+    const acc = pct(S.rooms[room]);
+    return { open, acc, locked: !unlocked(room) };
+  }
+  function planSVG() {
+    let s = `<svg class="plan" viewBox="0 0 960 560" role="group" aria-label="Imaging department floor plan">
+      <defs><pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" class="hatch-bg"/><line x1="0" y1="0" x2="0" y2="10" class="hatch-line"/></pattern></defs>
+      <rect class="floor" x="10" y="10" width="940" height="540" rx="8"/>
+      <rect class="corridor" x="20" y="240" width="920" height="80"/>
+      <path class="corridor-line" d="M40 280 H880"/>
+      <text class="corridor-text" x="40" y="270">MAIN CORRIDOR</text>
+      <path class="entrance" d="M928 280 l-22 -12 v24 z"/><text class="corridor-text" x="850" y="306">ENTRANCE</text>`;
+    E.ROOMS.forEach((room) => {
+      const g = GEO[room], info = roomInfo(room), dy = g.side === 'b' ? g.y + g.h : g.y;
+      const sub = info.locked ? `Unlocks at tier ${ROOM_TIER[room]}` : `${info.open} open${info.acc !== null ? ` · ${info.acc}% first-try` : ''}`;
+      const weak = info.acc !== null && S.rooms[room].n >= 3 && info.acc < 60;
+      s += `<g class="room${info.locked ? ' locked' : ''}${weak ? ' weak' : ''}" style="${roomStyle(room)}" data-room="${room}" ${info.locked ? 'aria-disabled="true"' : 'tabindex="0" role="button"'} aria-label="${ROOM_LABEL[room]}, ${esc(sub)}">
+        <rect class="room-fill" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"/>
+        ${equipment(room, g)}
+        ${info.locked ? `<rect class="lock" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"/>` : ''}
+        <rect class="wall" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"/>
+        <rect class="door-gap" x="${g.x + g.door}" y="${dy - 4}" width="44" height="8"/>
+        <path class="door-swing" d="${g.side === 'b' ? `M${g.x + g.door} ${dy} L${g.x + g.door} ${dy - 44} A44 44 0 0 1 ${g.x + g.door + 44} ${dy}` : `M${g.x + g.door} ${dy} L${g.x + g.door} ${dy + 44} A44 44 0 0 0 ${g.x + g.door + 44} ${dy}`}"/>
+        <text class="room-title" x="${g.x + 18}" y="${g.y + 36}">${ROOM_LABEL[room]}</text>
+        <text class="room-sub" x="${g.x + 18}" y="${g.y + 58}">${esc(sub)}</text>
+        ${info.locked ? `<text class="lock-text" x="${g.x + g.w / 2}" y="${g.y + g.h / 2 + 8}" text-anchor="middle">Locked</text>`
+          : `<rect class="bar-bg" x="${g.x + 18}" y="${g.y + 68}" width="110" height="5" rx="2.5"/>${info.acc !== null ? `<rect class="bar-fg" x="${g.x + 18}" y="${g.y + 68}" width="${1.1 * info.acc}" height="5" rx="2.5"/>` : ''}
+             ${info.open ? `<circle class="badge" cx="${g.x + g.w - 30}" cy="${g.y + 32}" r="16"/><text class="badge-text" x="${g.x + g.w - 30}" y="${g.y + 38}" text-anchor="middle">${info.open}</text>` : ''}`}
+      </g>`;
+    });
+    return s + '</svg>';
+  }
+  function roomCards() {
+    return '<div class="room-cards">' + E.ROOMS.map((room) => {
+      const info = roomInfo(room);
+      return `<button type="button" class="room-card${info.locked ? ' locked' : ''}" style="${roomStyle(room)}" data-room="${room}" ${info.locked ? 'disabled' : ''}>
+        <span class="rc-top"><b>${ROOM_LABEL[room]}</b>${info.locked ? '<span class="rc-lock">Tier ' + ROOM_TIER[room] + '</span>' : info.open ? `<span class="rc-badge">${info.open}</span>` : ''}</span>
+        <span class="rc-sub">${info.locked ? 'Locked' : info.acc !== null ? info.acc + '% first-try' : 'Not started'}</span>
+        <span class="rc-bar"><span style="width:${info.acc || 0}%"></span></span>
+      </button>`;
+    }).join('') + '</div>';
+  }
+  function inboxList() {
+    const order = [...S.inbox].sort((a, b) => ROOM_TIER[a.room] - ROOM_TIER[b.room] || a.tier - b.tier);
+    if (!order.length) return '<p class="muted">No open tickets. New ones arrive as you close others.</p>';
+    return '<ul class="inbox-list">' + order.map((sp, i) => `<li><button type="button" class="inbox-item${freshIds.has(sp.id) ? ' fresh' : ''}" style="${roomStyle(sp.room)}; --i: ${i}" data-spec="${sp.id}">
+        <span class="ii-head"><span class="ii-room"><span class="room-dot"></span>${ROOM_LABEL[sp.room]}${freshIds.has(sp.id) ? '<span class="new-tag">New</span>' : ''}</span><span class="ii-meta">${TYPE_LABEL[sp.type]} · T${sp.tier}</span></span>
+        <span class="ii-prompt">${esc(sp.prompt)}</span></button></li>`).join('') + '</ul>';
+  }
+  function renderMap() {
+    view = 'map'; cm = null;
+    const weak = weakSkills();
+    $('#app').innerHTML = `
+      <div class="mapview">
+        <section class="panel plan-panel">
+          <div class="plan-head"><h2>Imaging department</h2><span class="muted">Pick a room, or keep going through the inbox.</span><button class="btn" type="button" id="bStats">Your stats</button></div>
+          <div class="plan-wrap">${planSVG()}</div>
+          ${roomCards()}
+        </section>
+        <aside class="panel inbox">
+          <div class="inbox-head"><h2>Open tickets <span class="count">${S.inbox.length}</span></h2>
+            <button class="btn primary" type="button" id="bGo" ${S.inbox.length ? '' : 'disabled'}>Keep going →</button></div>
+          ${weak.length ? `<div class="needs"><span class="label">Needs work</span><span>${weak.map((k) => esc(E.SKILLS[k])).join(', ')}</span></div>` : ''}
+          ${inboxList()}
+        </aside>
+      </div>`;
+    const openRoom = (room) => { if (!unlocked(room)) return; const sp = S.inbox.find((s) => s.room === room) || makeSpec(room); if (sp) { if (!S.inbox.includes(sp)) S.inbox.push(sp); openSpec(sp); } else toast(`No tickets in ${ROOM_LABEL[room]} right now.`); };
+    $('#app').querySelectorAll('[data-room]').forEach((el) => {
+      el.addEventListener('click', () => openRoom(el.dataset.room));
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRoom(el.dataset.room); } });
+    });
+    $('#app').querySelectorAll('[data-spec]').forEach((el) => el.addEventListener('click', () => openSpec(S.inbox.find((s) => s.id === el.dataset.spec))));
+    $('#bGo').onclick = () => nextSpec(null);
+    $('#bStats').onclick = renderStats;
+    freshIds.clear();
+    window.scrollTo({ top: 0 });
+  }
+
+  // ---------- stats ----------
+  const GROUPS = [
+    ['Filtering', ['where', 'like', 'in', 'null', 'distinct']], ['Sorting', ['order']], ['Aggregates', ['count', 'aggregate']],
+    ['Grouping', ['groupby', 'having']], ['Dates', ['date']], ['Joins', ['join', 'join3', 'compare']], ['Left joins', ['leftjoin']],
+    ['CASE', ['case']], ['Subqueries', ['subquery']], ['Window fns', ['window']], ['CTEs', ['cte']],
+  ];
+  const skillTier = (k) => Math.min(...E.TEMPLATES.filter((t) => t.skill === k).map((t) => t.tier));
+  function groupStat(keys) { let n = 0, ok = 0; keys.forEach((k) => { const v = S.skills[k]; if (v) { n += v.n; ok += v.ok; } }); return { n, ok }; }
+  function radarSVG() {
+    const N = GROUPS.length, R = 128;
+    const pt = (i, r) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / N; return [Math.cos(a) * r, Math.sin(a) * r]; };
+    const poly = (r) => GROUPS.map((_, i) => pt(i, r).map((v) => v.toFixed(1)).join(',')).join(' ');
+    let s = `<svg class="radar" viewBox="0 0 470 370" role="img" aria-label="Radar chart of first-try accuracy for each skill group"><g transform="translate(235 185)">`;
+    [0.25, 0.5, 0.75, 1].forEach((f) => { s += `<polygon class="ring" points="${poly(R * f)}"/>`; });
+    s += `<text class="ring-label" x="-6" y="${-R * 0.5 + 12}" text-anchor="end">50%</text><text class="ring-label" x="-6" y="${-R + 14}" text-anchor="end">100%</text>`;
+    GROUPS.forEach((_, i) => { const [x, y] = pt(i, R); s += `<line class="spoke" x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`; });
+    const vals = GROUPS.map(([, keys]) => { const g = groupStat(keys); return g.n ? g.ok / g.n : null; });
+    s += `<g id="radarGrow"><polygon class="radar-shape" points="${GROUPS.map((_, i) => pt(i, R * (vals[i] || 0)).map((v) => v.toFixed(1)).join(',')).join(' ')}"/>`;
+    vals.forEach((v, i) => { if (v !== null) { const [x, y] = pt(i, R * v); s += `<circle class="radar-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/>`; } });
+    s += '</g>';
+    GROUPS.forEach(([name], i) => {
+      const [x, y] = pt(i, R + 20), anchor = x > 12 ? 'start' : x < -12 ? 'end' : 'middle', dy = y < -R ? -12 : y > R ? 14 : 0;
+      const v = vals[i];
+      s += `<text class="axis-label${v === null ? ' none' : ''}" x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}" text-anchor="${anchor}">${name}<tspan class="axis-val" x="${x.toFixed(1)}" dy="15">${v === null ? 'not tried' : Math.round(v * 100) + '%'}</tspan></text>`;
+    });
+    return s + '</g></svg>';
+  }
+  function growRadar() {
+    const g = document.getElementById('radarGrow'); if (!g || reduceMotion()) return;
+    const t0 = performance.now(), dur = 700;
+    const step = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); g.setAttribute('transform', `scale(${e.toFixed(3)})`); if (k < 1) requestAnimationFrame(step); };
+    g.setAttribute('transform', 'scale(0)'); requestAnimationFrame(step);
+  }
+  function renderStats() {
+    view = 'stats'; cm = null;
+    const acc = S.graded ? Math.round((100 * S.clean) / S.graded) : null;
+    const tierNow = S.tierMode === 'auto' ? S.tier : Number(S.tierMode);
+    const dots = [0, 1, 2, 3, 4].map((i) => { const h = S.history[i]; return `<span class="pdot ${h === undefined ? '' : h ? 'ok' : 'miss'}"></span>`; }).join('');
+    const promo = S.tierMode !== 'auto' ? `Locked to tier ${S.tierMode}. Switch to Adaptive to move between tiers.`
+      : S.tier >= 5 ? 'Top tier. Keep your first-try rate up to stay here.'
+      : `4 first-try passes in your last 5 tier ${S.tier} tickets moves you up.`;
+    const keys = Object.keys(E.SKILLS).sort((a, b) => skillTier(a) - skillTier(b));
+    const rows = keys.map((k) => {
+      const v = S.skills[k], p = pct(v), mt = skillTier(k), open = S.tierMode !== 'auto' || mt <= S.maxTier;
+      const weak = v && v.n >= 2 && v.ok / v.n < 0.6;
+      return `<tr class="${weak ? 'weak' : ''}"><td><span class="sk-name">${esc(E.SKILLS[k])}</span></td><td class="sk-tier">T${mt}</td>
+        <td class="sk-n">${v ? `${v.ok}/${v.n}` : '–'}</td>
+        <td><div class="sk-acc"><span class="sk-bar"><span style="width:${p || 0}%"></span></span><span class="sk-pct">${p === null ? '' : p + '%'}</span></div></td>
+        <td class="sk-act">${open ? `<button class="btn small" type="button" data-practice="${k}">Practice</button>` : `<span class="muted">Tier ${mt}</span>`}</td></tr>`;
+    }).join('');
+    const rooms = E.ROOMS.map((r) => { const v = S.rooms[r], p = pct(v); return `<div class="rs-card" style="${roomStyle(r)}"><b>${ROOM_LABEL[r]}</b><span class="rs-num">${p === null ? '–' : p + '%'}</span><span class="rc-bar"><span style="width:${p || 0}%"></span></span><span class="muted">${v ? v.n + ' ticket' + (v.n === 1 ? '' : 's') : unlocked(r) ? 'Not started' : 'Locked'}</span></div>`; }).join('');
+    $('#app').innerHTML = `
+      <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap3">← Department map</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Physics office · your stats</span></nav>
+      <div class="statsview">
+        <section class="panel tiles">
+          <div class="tile"><span class="t-label">Tier</span><b>${tierNow}</b><span class="pdots" aria-label="Last five tickets at this tier">${dots}</span><span class="t-note">${promo}</span></div>
+          <div class="tile"><span class="t-label">Tickets closed</span><b>${S.solved}</b><span class="t-note">${S.graded} graded so far</span></div>
+          <div class="tile"><span class="t-label">First-try rate</span><b>${acc === null ? '–' : acc + '%'}</b><span class="t-note">Passed with no wrong submits and no revealed answer</span></div>
+          <div class="tile"><span class="t-label">Best streak</span><b>${S.best}</b><span class="t-note">Current streak: ${S.streak}</span></div>
+        </section>
+        <div class="stats-grid">
+          <section class="panel radar-panel"><h2 class="panel-title">Skill shape</h2><p class="muted">First-try accuracy for each group of skills. A fuller shape means fewer weak spots.</p>${radarSVG()}</section>
+          <section class="panel skills-panel"><h2 class="panel-title">Every skill <small>practice one to get a run of only that skill</small></h2>
+            <div class="sk-wrap"><table class="sk-table"><thead><tr><th>Skill</th><th class="sk-tier">Tier</th><th class="sk-n">Passed</th><th>First-try</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>
+        </div>
+        <section class="panel rooms-panel"><h2 class="panel-title">By room</h2><div class="rs-grid">${rooms}</div></section>
+        <div class="reset-row"><button class="btn quiet" type="button" id="bResetAll">Reset progress</button></div>
+      </div>`;
+    $('#bMap3').onclick = renderMap;
+    $('#app').querySelectorAll('[data-practice]').forEach((b) => b.addEventListener('click', () => { focus = b.dataset.practice; view = 'stats'; nextSpec(null); }));
+    $('#bResetAll').onclick = (e) => {
+      const b = e.currentTarget;
+      if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = 'Click again to erase all progress'; setTimeout(() => { if (b.isConnected) { delete b.dataset.confirm; b.textContent = 'Reset progress'; } }, 3000); return; }
+      S = Object.assign(fresh(), { seed: S.seed, inboxSeed: S.seed, theme: S.theme });
+      fillInbox(); save(); updateStats(); renderStats(); toast('Progress reset. Back to tier 1.');
+    };
+    window.scrollTo({ top: 0 });
+    growRadar();
+  }
+
+  // ---------- the desk ----------
+  function openSpec(spec) {
+    if (!spec) return;
+    const t = E.TEMPLATES.find((x) => x.id === spec.tid);
+    const k = t && E.makeTicket(SQL, bytes, t, spec.seed, null, spec.room);
+    if (!k) { S.inbox = S.inbox.filter((s) => s.id !== spec.id); fillInbox(); return view === 'map' ? renderMap() : nextSpec(null); }
+    ticket = k; ticket.spec = spec;
+    ticket.sender = staff.find((s) => s.id === spec.from) || senderFor(spec.room);
+    last = [t.id, ...last].slice(0, 5);
+    Object.assign(tk, { firstTry: true, revealed: false, hinted: false, recorded: false, solved: false });
+    if (view !== 'desk') renderShell();
+    view = 'desk';
+    renderNav(); renderTicket(); renderWorkspace();
+    ['#ticket', '#work'].forEach((sel) => { const el = $(sel); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); });
+    window.scrollTo({ top: 0 });
+  }
+  function nextSpec(room) {
+    if (focus) {
+      const sp = makeSpec(null, focus);
+      if (sp) { S.inbox.push(sp); save(); return openSpec(sp); }
+      toast(`No ${E.SKILLS[focus]} tickets available right now.`); focus = null;
+    }
+    if (!S.inbox.length) fillInbox();
+    const sameRoom = room ? S.inbox.filter((s) => s.room === room) : [];
+    const pool = sameRoom.length ? sameRoom : S.inbox;
+    const weak = weakSkills();
+    const pick = pool.find((s) => weak.includes(s.skill)) || pool[0];
+    if (pick) openSpec(pick); else renderMap();
+  }
+
+  function renderShell() {
+    $('#app').innerHTML = `
+      <nav class="crumbs" id="nav"></nav>
+      <div class="desk">
+        <section class="panel ticket" id="ticket" aria-live="polite"></section>
+        <section class="panel work" id="work"></section>
+        <section class="panel schema" id="schema"></section>
+      </div>`;
+    renderSchema();
+  }
+  function renderNav() {
+    const here = S.inbox.filter((s) => s.room === ticket.room && s.id !== ticket.spec.id).length;
+    $('#nav').innerHTML = `<button class="btn quiet back" type="button" id="bMap">← Department map</button>
+      <span class="crumb-room" style="${roomStyle(ticket.room)}"><span class="room-dot"></span>${ROOM_LABEL[ticket.room]}</span>
+      ${focus ? `<span class="focus-pill">Practicing ${esc(E.SKILLS[focus])}<button type="button" id="bStopFocus">Stop</button></span>`
+        : `<span class="muted">${here ? `${here} more open here` : 'Last open ticket in this room'} · ${S.inbox.length} open total</span>`}
+      <button class="btn quiet nav-stats" type="button" id="bStats2">Your stats</button>`;
+    $('#bMap').onclick = () => { focus = null; renderMap(); };
+    $('#bStats2').onclick = () => { focus = null; renderStats(); };
+    if (focus) $('#bStopFocus').onclick = () => { focus = null; renderNav(); toast('Back to the regular inbox.'); };
+  }
+
+  function renderSchema() {
+    const order = ['machines', 'qc_tests', 'exams', 'protocols', 'staff'];
+    $('#schema').innerHTML = `<h2 class="panel-title">Database <small>click a column to insert it</small></h2>` + order.map((t, i) => `
+      <details class="tbl" ${i < 2 ? 'open' : ''}>
+        <summary>${t}<span class="rows">${schema[t].n} rows</span></summary>
+        <p class="tbl-note">${esc(E.TABLE_NOTES[t])}</p>
+        <div class="cols">${schema[t].cols.map((c) => `<button class="col-btn" type="button" data-ins="${c.name}">${c.name}<i>${c.type.toLowerCase()}</i></button>`).join('')}
+          <button class="col-btn" type="button" data-peek="${t}">preview</button></div>
+      </details>`).join('');
+    $('#schema').onclick = (e) => {
+      const ins = e.target.closest('[data-ins]'), peek = e.target.closest('[data-peek]');
+      if (ins && cm && ticket.type !== 'predict') { cm.replaceSelection(ins.dataset.ins); cm.focus(); }
+      if (peek) { const t = peek.dataset.peek; showRun(E.runOn(SQL, bytes, `SELECT * FROM ${t} LIMIT 12;`), `Preview of ${t} (first 12 rows)`); }
+    };
+  }
+
+  function renderTicket() {
+    const t = ticket, el = $('#ticket');
+    el.setAttribute('style', roomStyle(t.room));
+    el.classList.remove('stamped');
+    const s = t.sender;
+    const roleTxt = s.role === 'Technologist' ? `${ROOM_LABEL[s.modality] || s.modality} technologist` : s.role.toLowerCase();
+    let extra = '';
+    if (t.type === 'match') extra = `<div class="answer-box"><span class="label">Target result · ${t.expected.rows.length} row${t.expected.rows.length === 1 ? '' : 's'}${t.ordered ? ' · order matters' : ''}</span>${tableHTML(t.expected.columns.map((_, i) => 'col ' + (i + 1)), t.expected.rows)}<span class="from">Uses: ${tablesIn(t.sql).join(', ')}. Column names don't need to match.</span></div>`;
+    if (t.type === 'fix') extra = `<div class="from">The query is loaded in the editor. Run it, find the bug, fix it.</div>`;
+    if (t.type === 'predict') extra = `<div class="answer-box"><span class="label">Table: sample</span>${tableHTML(t.sample.columns, t.sample.rows)}</div><div class="answer-box"><span class="label">Query</span><pre class="code">${esc(t.query)}</pre></div>`;
+    const promptTxt = t.type === 'fix' ? `I tried to answer this and my query isn't right: "${esc(t.prompt)}"`
+      : t.type === 'match' ? `Write a query that produces exactly this table. ${t.ordered ? 'Row order matters.' : 'Row order doesn\'t matter.'}`
+      : esc(t.prompt);
+    el.innerHTML = `
+      <div class="ticket-band">
+        <span class="room-name"><span class="room-dot"></span>${ROOM_LABEL[t.room] || t.room}</span>
+        <span class="chips"><span class="chip type">${TYPE_LABEL[t.type]}</span><span class="chip">Tier ${t.template.tier}</span><span class="chip">${E.SKILLS[t.template.skill]}</span></span>
+      </div>
+      <div class="ticket-body">
+        <div class="from">From <b>${esc(s.name)}</b>, ${roleTxt}</div>
+        <p class="prompt">${promptTxt}</p>
+        ${extra}
+        <div id="hintBox"></div>
+        <div id="solBox"></div>
+        <div class="ticket-actions" id="tActions"></div>
+      </div>
+      <div class="stamp" id="stamp" hidden></div>`;
+    renderTicketActions();
+  }
+
+  function finishTicket() {
+    // ticket resolved (passed or answer shown): free its slot and bring in a new ticket
+    if (ticket.closed) return;
+    ticket.closed = true;
+    closeSpec(ticket.spec, !focus);
+    renderNav();
+  }
+
+  function renderTicketActions() {
+    const a = $('#tActions');
+    if (tk.solved || tk.revealed) {
+      a.innerHTML = `<button class="btn primary" type="button" id="bNext">Next ticket →</button><button class="btn" type="button" id="bBack">Back to map</button>`;
+      $('#bNext').onclick = () => nextSpec(ticket.room);
+      $('#bBack').onclick = renderMap;
+      return;
+    }
+    a.innerHTML = `
+      <button class="btn" type="button" id="bHint" ${tk.hinted ? 'hidden' : ''}>Hint</button>
+      <button class="btn" type="button" id="bReveal">Show answer</button>
+      <button class="btn quiet" type="button" id="bSkip">Skip</button>`;
+    $('#bHint').onclick = () => { tk.hinted = true; $('#hintBox').innerHTML = `<div class="hint"><b>Hint:</b> ${esc(ticket.hint)}</div>`; renderTicketActions(); };
+    $('#bReveal').onclick = () => { tk.revealed = true; record(false); showSolution(); stamp('fail', 'Reviewed'); finishTicket(); renderTicketActions(); };
+    $('#bSkip').onclick = () => { const room = ticket.room; S.inbox = S.inbox.filter((s) => s.id !== ticket.spec.id); arrive(); fillInbox(); nextSpec(room); };
+  }
+
+  function showSolution(label = 'One correct answer') {
+    const t = ticket;
+    const body = t.type === 'predict' ? `<pre class="code">${esc(t.answer === null ? 'NULL' : t.answer)}</pre>` : `<pre class="code">${esc(t.sql)}</pre>`;
+    $('#solBox').innerHTML = `<div class="solution"><span class="label">${label}</span>${body}</div>`;
+  }
+
+  function stamp(kind, text) {
+    $('#ticket').classList.add('stamped');
+    const s = $('#stamp'); s.hidden = false; s.className = 'stamp ' + kind; s.textContent = text;
+    void s.offsetWidth; s.classList.add('show');
+  }
+
+  function renderWorkspace() {
+    const t = ticket, w = $('#work');
+    if (t.type === 'predict') {
+      cm = null;
+      w.innerHTML = `
+        <div class="work-head"><h2>Your prediction</h2></div>
+        <div class="predict">
+          <label for="pAns">Work it out from the sample table. You can't run this one.</label>
+          <div class="predict-row"><input id="pAns" autocomplete="off" placeholder="${typeof t.answer === 'number' ? '3' : '2026-05-14'}"><button class="btn primary" type="button" id="bPred">Submit</button></div>
+        </div>
+        <div id="status"></div><div class="results" id="results"><div class="empty-res">Your result will show here.</div></div>`;
+      const go = () => {
+        if (tk.solved) return;
+        const v = $('#pAns').value;
+        if (!v.trim()) { setStatus('bad', 'Type an answer first.'); return; }
+        if (E.checkPredict(t, v)) { tk.solved = true; record(tk.firstTry); S.solved++; save(); updateStats(); stamp('pass', 'Pass'); setStatus('ok', `<b>Correct.</b> The query returns ${esc(t.answer)}.`); finishTicket(); renderTicketActions(); }
+        else { tk.firstTry = false; record(false); stamp('fail', 'Fail · retest'); setStatus('bad', '<b>Not quite.</b> Look again, or use the hint.'); }
+      };
+      $('#bPred').onclick = go;
+      $('#pAns').onkeydown = (e) => { if (e.key === 'Enter') go(); };
+      return;
+    }
+    const start = t.type === 'fix' ? t.broken : `-- ${t.type === 'match' ? 'Produce the target table' : 'Write your query here'}\n`;
+    w.innerHTML = `
+      <div class="work-head"><h2>Query editor</h2><button class="btn quiet" type="button" id="bReset">Reset editor</button></div>
+      <div class="editor-wrap"><textarea id="ed"></textarea></div>
+      <div class="bar">
+        <button class="btn" type="button" id="bRun">Run <kbd>Ctrl ↵</kbd></button>
+        <button class="btn primary" type="button" id="bSubmit">Submit <kbd>Ctrl ⇧ ↵</kbd></button>
+      </div>
+      <div id="status"></div>
+      <div class="results" id="results"><div class="empty-res">Run your query to see results here.</div></div>`;
+    const hintTables = {}; Object.entries(schema).forEach(([k, v]) => { hintTables[k] = v.cols.map((c) => c.name); });
+    cm = CodeMirror.fromTextArea($('#ed'), {
+      mode: 'text/x-sqlite', theme: 'shift', lineNumbers: true, indentUnit: 2, tabSize: 2, lineWrapping: true,
+      hintOptions: { tables: hintTables, completeSingle: false },
+      extraKeys: { 'Ctrl-Enter': run, 'Cmd-Enter': run, 'Shift-Ctrl-Enter': submit, 'Shift-Cmd-Enter': submit, 'Ctrl-Space': 'autocomplete', Tab: (c) => c.execCommand('insertSoftTab') },
+    });
+    cm.on('inputRead', (c, ch) => { if (/^[a-zA-Z_.]$/.test(ch.text[0]) && !c.state.completionActive) { const tok = c.getTokenAt(c.getCursor()); if (ch.text[0] === '.' || (tok.string.length >= 2 && tok.type !== 'string' && tok.type !== 'comment')) c.showHint({ completeSingle: false }); } });
+    cm.setValue(start); cm.setCursor(cm.lineCount(), 0);
+    setTimeout(() => cm.refresh(), 0);
+    $('#bRun').onclick = run; $('#bSubmit').onclick = submit;
+    $('#bReset').onclick = () => { cm.setValue(start); cm.focus(); };
+  }
+
+  function setStatus(kind, html) { $('#status').innerHTML = html ? `<div class="status ${kind}"><span class="msg">${html}</span></div>` : ''; }
+  function showRun(res, title) {
+    const r = $('#results');
+    if (res.error) { setStatus('bad', `<b>SQL error:</b> ${esc(res.error)}`); r.innerHTML = ''; return; }
+    if (title) setStatus('info', esc(title)); else setStatus('', '');
+    r.innerHTML = `<div class="res-meta"><span>${res.rows.length} row${res.rows.length === 1 ? '' : 's'}</span><span>${res.columns.length} column${res.columns.length === 1 ? '' : 's'}</span></div>` + tableHTML(res.columns, res.rows);
+  }
+  function run() { if (!cm) return; showRun(E.runOn(SQL, bytes, cm.getValue())); }
+
+  function submit() {
+    if (!cm || tk.solved) return;
+    const sql = cm.getValue();
+    if (!sql.replace(/--.*$/gm, '').trim()) { setStatus('bad', 'Write a query before submitting.'); return; }
+    const got = E.runOn(SQL, bytes, sql);
+    const v = E.compare(ticket.expected, got, ticket.ordered);
+    const r = $('#results');
+    if (v.ok) {
+      tk.solved = true;
+      if (!tk.revealed) { record(tk.firstTry); S.solved++; save(); updateStats(); }
+      stamp('pass', 'Pass');
+      setStatus('ok', tk.firstTry && !tk.revealed ? `<b>Ticket closed.</b> ${S.streak > 2 ? `${S.streak} in a row.` : 'First try.'}` : '<b>Ticket closed.</b>');
+      r.innerHTML = `<div class="res-meta"><span>${got.rows.length} row${got.rows.length === 1 ? '' : 's'}</span></div>` + tableHTML(got.columns, got.rows);
+      if (!tk.revealed) showSolution('Another way to write it');
+      finishTicket();
+      renderTicketActions();
+      return;
+    }
+    tk.firstTry = false;
+    record(false);
+    stamp('fail', 'Fail · retest');
+    if (v.reason === 'error') { setStatus('bad', `<b>SQL error:</b> ${esc(v.message)}`); r.innerHTML = ''; return; }
+    setStatus('bad', `<b>Not quite.</b> ${esc(v.message)}`);
+    if (v.reason === 'rows' || v.reason === 'order') {
+      r.innerHTML = `<div class="diff">
+        <div><h3>Your result <span class="legend extra">shouldn't be there</span></h3>${tableHTML(got.columns, got.rows, v.gotMarks)}</div>
+        <div><h3>Expected <span class="legend missing">missing from yours</span></h3>${tableHTML(ticket.expected.columns, ticket.expected.rows, v.expMarks)}</div>
+      </div>`;
+    } else r.innerHTML = tableHTML(got.columns, got.rows);
+  }
+
+  // ---------- controls ----------
+  $('#tierMode').onchange = (e) => { S.tierMode = e.target.value; S.inbox = []; save(); updateStats(); if (SQL) { fillInbox(); renderMap(); } };
+  let confirmTimer = null;
+  $('#btnHospital').onclick = (e) => {
+    const b = e.currentTarget;
+    if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = 'Click again to confirm'; clearTimeout(confirmTimer); confirmTimer = setTimeout(() => { delete b.dataset.confirm; b.textContent = 'New hospital'; }, 3000); return; }
+    delete b.dataset.confirm; b.textContent = 'New hospital';
+    S.seed = Math.floor(Math.random() * 1e9); save(); loadHospital(); fillInbox(); renderMap(); toast('New hospital loaded. Same skills, new data.');
+  };
+
+  // ---------- boot ----------
+  updateStats();
+  if (!window.initSqlJs || !window.CodeMirror) { $('#loading').innerHTML = '<div>The SQL engine didn\'t load. Check your connection and reload the page.</div>'; return; }
+  initSqlJs().then((lib) => { SQL = lib; loadHospital(); fillInbox(); renderMap(); })
+    .catch((e) => { $('#loading').innerHTML = `<div>The SQL engine didn't start: ${esc(e.message || e)}</div>`; });
+})();
+
+</script>
