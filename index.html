@@ -713,6 +713,9 @@ table.grid th.calc { font-family: var(--font-body); font-style: italic; font-wei
 .skill p { margin: 0; font-size: .84rem; color: var(--muted); line-height: 1.45; }
 .skill code { font-family: var(--font-mono); font-size: .76rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; display: block; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
 .skill .btn.small { justify-self: start; }
+.need-cols { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; counter-reset: c; }
+.need-cols li { font-family: var(--font-mono); font-size: .8rem; background: color-mix(in srgb, var(--room) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--room) 40%, var(--line)); border-radius: 6px; padding: 3px 9px; }
+.need-cols li.calc { font-family: var(--font-body); font-style: italic; }
 /* dismiss */
 .ii-li { position: relative; }
 .inbox-item { padding-right: 38px; }
@@ -1373,11 +1376,29 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   }
   const rowKey = (row) => row.map(cellKey).join('␟');
 
+  function perms(n) {
+    if (n <= 1) return [[0]];
+    const out = [];
+    perms(n - 1).forEach((p) => { for (let i = 0; i <= p.length; i++) out.push([...p.slice(0, i), n - 1, ...p.slice(i)]); });
+    return out;
+  }
+  // Column order doesn't matter: try every arrangement of the player's columns (up to 5 columns).
   function compare(expected, got, ordered) {
     if (got.error) return { ok: false, reason: 'error', message: got.error };
     const ec = expected.columns.length, gc = got.columns.length;
     if (gc === 0 && expected.rows.length) return { ok: false, reason: 'norows', message: "Your query didn't return a result table." };
-    if (ec !== gc) return { ok: false, reason: 'cols', message: `Expected ${ec} column${ec === 1 ? '' : 's'}, got ${gc}.` };
+    if (ec !== gc) return { ok: false, reason: 'cols', message: `This ticket needs ${ec} column${ec === 1 ? '' : 's'} and your query returned ${gc}.`, expectedCols: ec, gotCols: gc };
+    const first = compareOrdered(expected, got, ordered);
+    if (first.ok || gc > 5 || gc < 2) return first;
+    let best = first;
+    for (const p of perms(gc)) {
+      const r = compareOrdered(expected, { columns: p.map((i) => got.columns[i]), rows: got.rows.map((row) => p.map((i) => row[i])) }, ordered);
+      if (r.ok) return { ok: true, reordered: true };
+      if (r.reason === 'order' && best.reason !== 'order') best = r;
+    }
+    return best;
+  }
+  function compareOrdered(expected, got, ordered) {
     const ek = expected.rows.map(rowKey), gk = got.rows.map(rowKey);
     // multiset diff
     const pool = new Map(); ek.forEach((k) => pool.set(k, (pool.get(k) || 0) + 1));
@@ -1431,7 +1452,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       if (type === 'match' && !(expected.rows.length && expected.rows.length <= 12)) type = 'write';
       if (type === 'match' && expected.rows.length === 1 && expected.columns.length === 1) type = 'write';
       return { template, type, room: g.room, prompt: g.prompt, sql: g.sql, broken: g.broken, ordered: !!g.ordered, expected, hint: g.hint,
-        headers: type === 'match' ? describeColumns(g.sql, expected.columns, g.headers) : null, uses: type === 'match' ? usedColumns(g.sql) : null };
+        headers: describeColumns(g.sql, expected.columns, g.headers), uses: type === 'match' ? usedColumns(g.sql) : null };
     }
     return null;
   }
@@ -1544,6 +1565,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   let S = fresh();
   try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
   S.maxTier = Math.max(S.maxTier || 1, S.tier);
+  if (S.tierMode === 'auto' && S.tier < S.maxTier) { S.tier = S.maxTier; S.history = []; }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
   // ---------- theme ----------
@@ -1699,7 +1721,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         const newly = E.ROOMS.filter((r) => ROOM_TIER[r] === S.tier && S.tier > S.maxTier);
         S.maxTier = Math.max(S.maxTier, S.tier);
         toast(newly.length ? `Promoted to tier ${S.tier}. ${newly.map((r) => ROOM_LABEL[r]).join(' and ')} unlocked.` : `Promoted to tier ${S.tier}.`);
-      } else if (S.history.length >= 5 && sum <= 1 && S.tier > 1) { S.tier--; S.history = []; toast(`Back to tier ${S.tier} for a few reps.`); }
+      } else if (S.history.length >= 5) S.history = S.history.slice(-4);
     }
     save(); updateStats();
   }
@@ -1905,7 +1927,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         </div></section>`;
     }).join('');
     const how = S.tierMode === 'auto'
-      ? (S.tier >= 5 ? "You're at the top tier." : `Get 4 of your last 5 tier ${S.tier} tickets right on the first try to move up. Missing most of them moves you down a tier.`)
+      ? (S.tier >= 5 ? "You're at the top tier." : `Get 4 of your last 5 tier ${S.tier} tickets right on the first try to move up. Misses never drop you to a lower tier.`)
       : `You're locked to tier ${S.tierMode}. Switch Practice to Adaptive to move between tiers.`;
     $('#app').innerHTML = `
       <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap4">← Department map</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Tier guide</span></nav>
@@ -2082,7 +2104,8 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         <span class="from">${anyCalc ? 'Italic headers are calculated values. ' : ''}Your column names don't need to match.</span></div>
         <div class="answer-box"><span class="label">Tables and columns involved</span><div class="uses">${uses}</div></div>`;
     }
-    if (t.type === 'fix') extra = `<div class="from">The query is loaded in the editor. Run it, find the bug, fix it.</div>`;
+    if ((t.type === 'write' || t.type === 'fix') && t.headers) extra = colsBox(t);
+    if (t.type === 'fix') extra += `<div class="from">The query is loaded in the editor. Run it, find the bug, fix it.</div>`;
     if (t.type === 'predict') extra = `<div class="answer-box"><span class="label">Table: sample</span>${tableHTML(t.sample.columns, t.sample.rows)}</div><div class="answer-box"><span class="label">Query</span><pre class="code">${esc(t.query)}</pre></div>`;
     const promptTxt = t.type === 'fix' ? `I tried to answer this and my query isn't right: "${esc(t.prompt)}"`
       : t.type === 'match' ? `Write a query that produces exactly this table. ${t.ordered ? 'Row order matters.' : 'Row order doesn\'t matter.'}`
@@ -2104,6 +2127,12 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     renderTicketActions();
   }
 
+  function colsBox(t) {
+    const n = t.headers.length;
+    return `<div class="answer-box"><span class="label">Return ${n === 1 ? 'this column' : `these ${n} columns`}</span>
+      <ol class="need-cols">${t.headers.map((h) => `<li class="${h.calc ? 'calc' : ''}">${esc(h.text)}</li>`).join('')}</ol>
+      <span class="from">${n > 1 ? 'Any column order works. ' : ''}${t.headers.some((h) => h.calc) ? 'Italic items are values you calculate. ' : ''}Column names and aliases don't matter.</span></div>`;
+  }
   function finishTicket() {
     // ticket resolved (passed or answer shown): free its slot and bring in a new ticket
     if (ticket.closed) return;
@@ -2217,7 +2246,8 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     record(false);
     stamp('fail', 'Fail · retest');
     if (v.reason === 'error') { setStatus('bad', `<b>SQL error:</b> ${esc(v.message)}`); r.innerHTML = ''; return; }
-    setStatus('bad', `<b>Not quite.</b> ${esc(v.message)}`);
+    const colHelp = v.reason === 'cols' && ticket.headers ? ` Needed: ${ticket.headers.map((h) => esc(h.text)).join(', ')}.` : '';
+    setStatus('bad', `<b>Not quite.</b> ${esc(v.message)}${colHelp}`);
     if (v.reason === 'rows' || v.reason === 'order') {
       r.innerHTML = `<div class="diff">
         <div><h3>Your result <span class="legend extra">shouldn't be there</span></h3>${tableHTML(got.columns, got.rows, v.gotMarks)}</div>
