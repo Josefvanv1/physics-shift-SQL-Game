@@ -716,6 +716,32 @@ table.grid th.calc { font-family: var(--font-body); font-style: italic; font-wei
 .need-cols { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; counter-reset: c; }
 .need-cols li { font-family: var(--font-mono); font-size: .8rem; background: color-mix(in srgb, var(--room) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--room) 40%, var(--line)); border-radius: 6px; padding: 3px 9px; }
 .need-cols li.calc { font-family: var(--font-body); font-style: italic; }
+/* datasets */
+.area-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.area-board .room-card { padding: 14px; gap: 8px; min-height: 112px; align-content: start; }
+.area-board .room-card b { font-size: 1.08rem; }
+.ds-group { display: grid; gap: 8px; }
+.ds-group + .ds-group { margin-top: 6px; }
+.ds-head { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
+.ds-head h3 { font-family: var(--font-display); font-size: 1rem; margin: 0; }
+.ds-tables { display: flex; flex-wrap: wrap; gap: 6px; }
+.ds-tables span { font-family: var(--font-mono); font-size: .76rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+.ds-tag { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+.chip.cold { background: var(--panel); border-style: dashed; }
+.cold-note { background: var(--panel-2); border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px 10px; font-size: .86rem; }
+.cold-note code, .tbl-cold code { font-family: var(--font-mono); font-size: .78rem; }
+.tbl-cold { font-size: .82rem; color: var(--muted); margin: 0 0 6px; }
+.walk { border: 1px solid color-mix(in srgb, var(--focus) 40%, var(--line)); background: color-mix(in srgb, var(--focus) 7%, var(--panel)); border-radius: 10px; padding: 10px 12px; display: grid; gap: 10px; }
+.walk-title { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--focus); font-weight: 700; }
+.walk ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+.walk li { font-size: .9rem; line-height: 1.5; }
+.walk li b { display: block; font-size: .8rem; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
+.walk li.new { animation: slideUp .3s ease-out both; }
+.walk .tag { font-family: var(--font-mono); font-size: .76rem; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; display: inline-block; margin: 2px 4px 2px 0; }
+.walk dl { margin: 0; display: grid; gap: 4px; }
+.walk dt { font-weight: 700; font-size: .84rem; }
+.walk dd { margin: 0 0 4px; color: var(--muted); font-size: .84rem; }
+.walk-actions { display: flex; gap: 8px; }
 /* dismiss */
 .ii-li { position: relative; }
 .inbox-item { padding-right: 38px; }
@@ -756,7 +782,7 @@ table.grid th.calc { font-family: var(--font-body); font-style: italic; font-wei
         <circle cx="20" cy="20" r="7" fill="var(--panel)" stroke="var(--line-strong)" stroke-width="2"/>
         <rect x="6" y="31" width="28" height="5" rx="2" fill="var(--muted)"/>
       </svg>
-      <div><h1>Physics Shift</h1><p>SQL practice in a hospital imaging department</p></div>
+      <div><h1>Physics Shift</h1><p>SQL practice on realistic datasets</p></div>
     </div>
     <div class="stats" aria-live="polite">
       <div class="stat"><b id="sTier">1</b><span>Tier</span></div>
@@ -765,12 +791,16 @@ table.grid th.calc { font-family: var(--font-body); font-style: italic; font-wei
       <div class="stat"><b id="sAcc">–</b><span>First-try</span></div>
     </div>
     <div class="tools">
+      <label for="dataset" style="font-size:.8rem;color:var(--muted)">Dataset</label>
+      <select id="dataset">
+        <option value="hospital">Hospital physics</option><option value="university">University</option><option value="retail">Retail store</option><option value="hr">Company HR</option><option value="mixed">Mixed</option>
+      </select>
       <label for="tierMode" class="sr-hidden" style="font-size:.8rem;color:var(--muted)">Practice</label>
       <select id="tierMode">
         <option value="auto">Adaptive</option>
         <option value="1">Tier 1 only</option><option value="2">Tier 2 only</option><option value="3">Tier 3 only</option><option value="4">Tier 4 only</option><option value="5">Tier 5 only</option>
       </select>
-      <button class="btn" id="btnHospital" type="button" title="Generate a new hospital database">New hospital</button>
+      <button class="btn" id="btnHospital" type="button" title="Generate new random data for this dataset">New data</button>
       <button class="btn" id="btnTiers" type="button">Tiers</button>
       <button class="btn" id="btnTheme" type="button">Reading room</button>
     </div>
@@ -794,7 +824,7 @@ table.grid th.calc { font-family: var(--font-body); font-style: italic; font-wei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
 <script>
-/* Physics Shift engine: hospital generator, ticket templates, grading */
+/* Physics Shift engine: dataset registry, hospital dataset, grading, ticket planning */
 (function (root) {
   function mulberry32(a) {
     return function () {
@@ -962,9 +992,13 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   function runOn(SQL, bytes, sql) {
     const d = new SQL.Database(bytes);
     try {
-      const res = d.exec(sql);
-      const last = res.length ? res[res.length - 1] : { columns: [], values: [] };
-      return { columns: last.columns, rows: last.values };
+      let last = { columns: [], rows: [] };
+      for (const st of d.iterateStatements(sql)) {
+        const cols = st.getColumnNames(), rows = [];
+        while (st.step()) rows.push(st.get());
+        if (cols.length) last = { columns: cols, rows };
+      }
+      return last;
     } catch (e) {
       return { error: String(e.message || e) };
     } finally { d.close(); }
@@ -1301,7 +1335,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     return { room: 'Department', prompt: 'For each modality with dose data, show the single highest-dose exam: modality, exam id, and dose_mgy.',
       sql: "SELECT modality, id, dose_mgy\nFROM (SELECT m.modality, e.id, e.dose_mgy,\n             ROW_NUMBER() OVER (PARTITION BY m.modality\n                                ORDER BY e.dose_mgy DESC) AS rn\n      FROM exams e\n      JOIN machines m ON m.id = e.machine_id\n      WHERE e.dose_mgy IS NOT NULL)\nWHERE rn = 1;",
       broken: "SELECT modality, id, dose_mgy\nFROM (SELECT m.modality, e.id, e.dose_mgy,\n             ROW_NUMBER() OVER (PARTITION BY m.modality\n                                ORDER BY e.dose_mgy) AS rn\n      FROM exams e\n      JOIN machines m ON m.id = e.machine_id\n      WHERE e.dose_mgy IS NOT NULL)\nWHERE rn = 1;",
-      hint: 'ROW_NUMBER() OVER (PARTITION BY modality ORDER BY dose DESC) numbers each modality separately. Keep row 1.', headers: ['machines.modality', 'exams.id', 'exams.dose_mgy'] };
+      hint: 'ROW_NUMBER() OVER (PARTITION BY modality ORDER BY dose DESC) numbers each modality separately. Keep row 1.', grain: 'one row per modality', headers: ['machines.modality', 'exams.id', 'exams.dose_mgy'] };
   } });
   add({ id: 'cte-fails', tier: 5, skill: 'cte', gen() {
     return { room: 'Department', prompt: 'Among machines with at least one failed QC test, which have more failures than the average for that group? Show machine name and failure count.',
@@ -1372,7 +1406,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     if (v === null || v === undefined) return '∅';
     if (typeof v === 'number') return String(Math.round(v * 10) / 10);
     if (v instanceof Uint8Array) return '[blob]';
-    return String(v).trim();
+    return String(v);
   }
   const rowKey = (row) => row.map(cellKey).join('␟');
 
@@ -1426,16 +1460,19 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         const d = new SQL.Database(bytes);
         let sample, ans;
         try {
-          d.run(`CREATE TABLE sample AS SELECT id, test_name, test_date, result, measured_value FROM qc_tests WHERE id IN (${g.ids.join(',')}) ORDER BY test_date`);
+          const src = g.sampleSql || `SELECT id, test_name, test_date, result, measured_value FROM qc_tests WHERE id IN (${g.ids.join(',')}) ORDER BY test_date`;
+          d.run(`CREATE TABLE sample AS ${src}`);
           sample = d.exec('SELECT * FROM sample')[0];
           ans = d.exec(g.query)[0].values[0][0];
-        } finally { d.close(); c.close(); }
-        return { template, type: 'predict', room: g.room, prompt: g.prompt, query: g.query, sample: { columns: sample.columns, rows: sample.values }, answer: ans, hint: g.hint };
+        } catch (e) { d.close(); c.close(); continue; }
+        d.close(); c.close();
+        if (!sample || ans === undefined) continue;
+        return { template, type: 'predict', room: g.room || room || template.rooms[0], prompt: g.prompt, query: g.query, sample: { columns: sample.columns, rows: sample.values }, answer: ans, hint: g.hint };
       }
       c.close();
       const expected = runOn(SQL, bytes, g.sql);
       if (expected.error) { if (typeof console !== 'undefined') console.warn('template error', template.id, expected.error); continue; }
-      if (!expected.rows.length && !(g.allowEmpty && attempt >= 8)) continue;
+      if (!expected.rows.length) continue;
       let type = typePref || 'write';
       if (!typePref) {
         const x = r();
@@ -1451,18 +1488,25 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       }
       if (type === 'match' && !(expected.rows.length && expected.rows.length <= 12)) type = 'write';
       if (type === 'match' && expected.rows.length === 1 && expected.columns.length === 1) type = 'write';
-      return { template, type, room: g.room, prompt: g.prompt, sql: g.sql, broken: g.broken, ordered: !!g.ordered, expected, hint: g.hint,
-        headers: describeColumns(g.sql, expected.columns, g.headers), uses: type === 'match' ? usedColumns(g.sql) : null };
+      const def = CTX[template.ctx] || CTX.hospital, tc = def.tableCols;
+      const tk = { template, type, room: g.room || room || template.rooms[0], prompt: g.prompt, sql: g.sql, broken: g.broken, ordered: !!g.ordered, expected, hint: g.hint, grain: g.grain,
+        headers: describeColumns(g.sql, expected.columns, g.headers, tc), uses: type === 'match' ? usedColumns(g.sql, tc) : null };
+      tk.plan = planTicket(tk, tc, def.singular || {});
+      return tk;
     }
     return null;
   }
 
   // ---------- describing a result for Match it ----------
-  const TABLE_COLS = {};
-  SCHEMA.replace(/CREATE TABLE (\w+) \(([^)]*)\)/g, (_, t, body) => { TABLE_COLS[t] = body.split(',').map((x) => x.trim().split(/\s+/)[0]); return ''; });
-  function aliasMap(sql) {
+  function tableColsOf(schema) {
+    const tc = {};
+    schema.replace(/CREATE TABLE (\w+) \(([^)]*)\)/g, (_, t, body) => { tc[t] = body.split(',').map((x) => x.trim().split(/\s+/)[0]); return ''; });
+    return tc;
+  }
+  const TABLE_COLS = tableColsOf(SCHEMA);
+  function aliasMap(sql, TABLE_COLS) {
     const map = {}; const re = /\b(?:FROM|JOIN)\s+(\w+)(?:\s+(?!ON\b|WHERE\b|JOIN\b|GROUP\b|ORDER\b|LEFT\b|INNER\b)(\w+))?/gi; let m;
-    while ((m = re.exec(sql))) if (TABLE_COLS[m[1]]) { map[m[1]] = m[1]; if (m[2]) map[m[2]] = m[1]; }
+    while ((m = re.exec(sql))) if (TABLE_COLS[m[1]]) { map[m[1]] = m[1]; if (m[2] && !TABLE_COLS[m[2]]) map[m[2]] = m[1]; }
     return map;
   }
   function selectItems(sql) {
@@ -1488,13 +1532,15 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     if ((m = e.match(/^AVG\((\w+)\)$/i))) return `average ${m[1]}`;
     if ((m = e.match(/^MAX\((\w+)\)$/i))) return /date/.test(m[1]) ? `latest ${m[1]}` : `highest ${m[1]}`;
     if ((m = e.match(/^MIN\((\w+)\)$/i))) return /date/.test(m[1]) ? `earliest ${m[1]}` : `lowest ${m[1]}`;
+    if ((m = e.match(/^SUM\((\w+)\)$/i))) return `total ${m[1]}`;
+    if ((m = e.match(/^(?:LOWER|UPPER|TRIM)\(.*?(\w+)\)+$/i))) return `cleaned ${m[1]}`;
     if (/FAIL/i.test(e) && /100/.test(e)) return 'percent failed, 1 decimal';
     if (/OVER/i.test(e)) return 'calculated value';
     return 'calculated value';
   }
   // returns [{ text, calc }] — calc true for computed columns
-  function describeColumns(sql, columns, overrides) {
-    const items = selectItems(sql), am = aliasMap(sql);
+  function describeColumns(sql, columns, overrides, TABLE_COLS) {
+    const items = selectItems(sql), am = aliasMap(sql, TABLE_COLS);
     const tables = Object.values(am);
     return columns.map((col, i) => {
       if (overrides && overrides[i]) return { text: overrides[i], calc: !/^\w+\.\w+$/.test(overrides[i]) };
@@ -1503,20 +1549,22 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       const core = asM ? item.slice(0, asM.index).trim() : item;
       if (asM && PLAIN[asM[1]]) return { text: PLAIN[asM[1]], calc: true };
       let m;
+      if (asM && (m = core.match(/^(\w+)\.(\w+)$/)) && am[m[1]]) return { text: `${am[m[1]]}.${m[2]} (${asM[1].replace(/_/g, ' ')})`, calc: false };
+      if (asM && !/^\w+$/.test(core)) return { text: asM[1].replace(/_/g, ' '), calc: true };
       if ((m = core.match(/^(\w+)\.(\w+)$/)) && am[m[1]]) return { text: `${am[m[1]]}.${m[2]}`, calc: false };
       if (m && PLAIN[m[2]]) return { text: PLAIN[m[2]], calc: true };
       if (/^\w+$/.test(core)) {
         const owners = [...new Set(tables)].filter((t) => TABLE_COLS[t].includes(core));
         if (owners.length >= 1) return { text: `${owners[0]}.${core}`, calc: false };
         if (PLAIN[core]) return { text: PLAIN[core], calc: true };
-        return { text: core, calc: false };
+        return { text: core.replace(/_/g, ' '), calc: true };
       }
       if ((m = core.match(/strftime\('%Y-%m'/i))) return { text: PLAIN.month, calc: true };
       return { text: plainCalc(core), calc: true };
     });
   }
-  function usedColumns(sql) {
-    const am = aliasMap(sql), out = {};
+  function usedColumns(sql, TABLE_COLS) {
+    const am = aliasMap(sql, TABLE_COLS), out = {};
     const hasAlias = Object.keys(am).some((k) => am[k] !== k);
     [...new Set(Object.values(am))].forEach((t) => {
       const aliases = Object.keys(am).filter((k) => am[k] === t && k !== t);
@@ -1528,6 +1576,78 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       out[t] = cols;
     });
     return out;
+  }
+
+  // ---------- walkthrough: plan a query before writing it ----------
+  const TOOLS = [
+    [/\bWITH\s+\w+\s+AS\s*\(/i, 'WITH (a CTE)', 'Work it out in two steps: first build a temporary result and name it with WITH, then query that result.'],
+    [/\bOVER\s*\(/i, 'Window function', 'You need ranks, running totals, the previous row, or a share of a total, while keeping every row. That means a function with OVER (...).'],
+    [/\bUNION\b/i, 'UNION', 'The answer combines two separate lists into one. Write each list as its own SELECT and put UNION between them.'],
+    [/\bNOT\s+EXISTS\b/i, 'NOT EXISTS', '"Never" or "no ..." about related rows: keep a row only if a matching row does NOT exist in the other table.'],
+    [/(?<!NOT\s)\bEXISTS\b/i, 'EXISTS', '"At least one" related row: keep a row if a matching row exists in the other table.'],
+    [/\bNOT\s+IN\s*\(\s*SELECT/i, 'NOT IN (subquery)', '"Never" or "no ...": build a list of the ones that DID happen, then keep everything NOT IN that list.'],
+    [/(?<!NOT\s)\bIN\s*\(\s*SELECT/i, 'IN (subquery)', 'One table only decides which rows of the other to keep. Build that list in a subquery and use IN.'],
+    [/[<>=]\s*\(\s*SELECT/i, 'Subquery as a value', 'You compare against a number you have to calculate first, like an average. Put that calculation in parentheses.'],
+    [/\bLEFT\s+JOIN\b/i, 'LEFT JOIN', 'Keep every row from the first table even when nothing matches ("include zero", "never", "without").'],
+    [/(?<!LEFT\s+)\bJOIN\b/i, 'JOIN', 'The columns you need live in different tables. Connect them with JOIN ... ON using the matching id columns.'],
+    [/\bCASE\s+WHEN\b/i, 'CASE WHEN', 'You have to label rows or count them by category. CASE WHEN ... THEN ... ELSE ... END builds that value.'],
+    [/\bHAVING\b/i, 'HAVING', 'The filter is about a group total ("more than 3 ..."). Filter groups with HAVING, after GROUP BY.'],
+    [/\bGROUP\s+BY\b/i, 'GROUP BY', '"For each ..." or "per ..." means one row per group. GROUP BY that thing.'],
+    [/\b(?:COUNT|SUM|AVG|MIN|MAX)\s*\(/i, 'Aggregate function', 'You need a count, total, average, or extreme value, not the individual rows.'],
+    [/\bCOALESCE\s*\(/i, 'COALESCE', 'Replace missing (NULL) values with something readable.'],
+    [/\b(?:LOWER|UPPER|TRIM|REPLACE|SUBSTR)\s*\(/i, 'Text functions', 'The text is messy. Clean it with LOWER / TRIM / REPLACE before comparing or grouping.'],
+    [/\bjulianday\s*\(/i, 'Date math', 'Subtract dates with julianday(later) - julianday(earlier) to get days.'],
+    [/\bstrftime\s*\(/i, 'Date parts', "strftime('%Y', date) or strftime('%Y-%m', date) pulls the year or month out of a date."],
+    [/\bIS\s+(?:NOT\s+)?NULL\b/i, 'IS NULL', 'Missing values are NULL. Test for them with IS NULL or IS NOT NULL, never = NULL.'],
+    [/\bDISTINCT\b/i, 'DISTINCT', 'Each value should appear once.'],
+    [/\bLIKE\b/i, 'LIKE', 'Match part of a text value, with % meaning "anything".'],
+    [/\bIN\s*\((?!\s*SELECT)/i, 'IN list', 'Match any value from a short list.'],
+    [/\bORDER\s+BY\b/i, 'ORDER BY', 'The order of rows matters, or you need the top or bottom few (LIMIT).'],
+    [/\bWHERE\b/i, 'WHERE', 'Keep only the rows that meet a condition.'],
+  ];
+  function planTicket(t, tc, singular) {
+    const sql = t.sql, am = aliasMap(sql, tc);
+    const links = [], seen = new Set();
+    const re = /\b(\w+)\.(\w+)\s*=\s*(\w+)\.(\w+)/g; let m;
+    while ((m = re.exec(sql))) {
+      const a = am[m[1]], b = am[m[3]];
+      if (!a || !b) continue;
+      const key = [`${a}.${m[2]}`, `${b}.${m[4]}`].sort().join('=');
+      if (seen.has(key)) continue; seen.add(key);
+      links.push(a === b ? `${a}.${m[2]} = ${b}.${m[4]} (the same table, joined to itself)` : `${a}.${m[2]} = ${b}.${m[4]}`);
+    }
+    const tools = []; const names = new Set();
+    TOOLS.forEach(([rx, name, why]) => { if (rx.test(sql) && !names.has(name)) { names.add(name); tools.push({ name, why }); } });
+    let grain = t.grain;
+    if (!grain) {
+      const g = sql.match(/GROUP\s+BY\s+([\w.]+)/i);
+      const main = (sql.replace(/^\s*WITH[\s\S]*?\)\s*(?=SELECT)/i, '').match(/\bFROM\s+(\w+)/i) || [])[1];
+      if (g) {
+        const parts = g[1].split('.'), col = parts.pop(), tb = parts.length ? am[parts[0]] : Object.keys(tc).find((x) => tc[x].includes(col) && Object.values(am).includes(x));
+        const base = col.replace(/_id$/, '');
+        grain = col === 'id' ? `one row per ${singular[tb] || 'row'}`
+          : /_id$/.test(col) ? `one row per ${singular[base + 's'] || singular[base] || base.replace(/_/g, ' ')}`
+          : `one row per ${singular[col] || col.replace(/_/g, ' ')}`;
+      } else if ((m = sql.match(/^\s*SELECT\s+DISTINCT\s+([\w.]+)\s+FROM/i))) grain = `one row per different ${m[1].split('.').pop().replace(/_/g, ' ')}`;
+      else if (/^\s*SELECT\s+(?:ROUND\()?\s*(COUNT|SUM|AVG|MIN|MAX)\s*\(/i.test(sql) && t.expected.rows.length === 1) grain = 'a single summary row';
+      else grain = `one row per ${singular[am[main] || main] || 'row'}`;
+    }
+    return { grain, rows: t.expected.rows.length, tables: usedColumns(sql, tc), links, tools };
+  }
+
+  // ---------- dataset registry ----------
+  const CTX = {}, ALL = [];
+  function registerContext(def) {
+    def.tableCols = tableColsOf(def.schema);
+    def.templates.forEach((t) => {
+      t.ctx = def.id;
+      if (!t.rooms) t.rooms = [def.areas[0].key];
+      t.rooms.forEach((r) => { if (!def.areas.some((a) => a.key === r)) throw new Error(`unknown area ${r} in ${t.id}`); });
+      if (ALL.some((x) => x.id === t.id)) throw new Error('duplicate template id ' + t.id);
+      ALL.push(t);
+    });
+    CTX[def.id] = def;
+    return def;
   }
 
   function checkPredict(ticket, input) {
@@ -1542,11 +1662,1110 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     count: 'COUNT', aggregate: 'AVG, MIN, MAX', groupby: 'GROUP BY', having: 'HAVING', date: 'Dates',
     join: 'JOIN', leftjoin: 'LEFT JOIN', join3: 'Multi-table joins', compare: 'Cross-table comparisons', case: 'CASE WHEN', subquery: 'Subqueries',
     window: 'Window functions', cte: 'CTEs (WITH)',
+    coalesce: 'COALESCE', text: 'Text cleanup', datemath: 'Date math', selfjoin: 'Self-joins', exists: 'EXISTS / NOT EXISTS',
+    union: 'UNION', pivot: 'Pivot counts', dedupe: 'Duplicates',
   };
 
-  const api = { describeColumns, usedColumns, ROOMS: ['CT', 'MRI', 'Mammo', 'Fluoro', 'Radiography', 'Department'], mulberry32, generate, runOn, makeTicket, compare, checkPredict, TEMPLATES: T, SKILLS, TABLE_NOTES, MODS, rowKey };
+  registerContext({
+    id: 'hospital', name: 'Hospital physics', short: 'Hospital', blurb: 'QC logs, exams, and dose records in an imaging department.',
+    schema: SCHEMA, notes: TABLE_NOTES, generate, templates: T, map: true,
+    tableOrder: ['machines', 'qc_tests', 'exams', 'protocols', 'staff'],
+    singular: { machines: 'machine', qc_tests: 'QC test', exams: 'exam', protocols: 'protocol', staff: 'staff member', techs: 'technologist', machine: 'machine', protocol: 'protocol', tech: 'technologist' },
+    areas: [
+      { key: 'CT', label: 'CT', color: '--ct', tier: 1 }, { key: 'MRI', label: 'MRI', color: '--mri', tier: 2 },
+      { key: 'Mammo', label: 'Mammography', color: '--mammo', tier: 3 }, { key: 'Fluoro', label: 'Fluoroscopy', color: '--fluoro', tier: 4 },
+      { key: 'Radiography', label: 'Radiography', color: '--rad', tier: 1 }, { key: 'Department', label: 'Physics office', color: '--dept', tier: 1 },
+    ],
+  });
+  const util = { mulberry32, helpers, ymd, pad, MONTHS, DAYS_IN, FIRST, LAST, sqlStr };
+  const api = { describeColumns, usedColumns, planTicket, registerContext, CTX, util, ROOMS: ['CT', 'MRI', 'Mammo', 'Fluoro', 'Radiography', 'Department'], mulberry32, generate, runOn, makeTicket, compare, checkPredict, TEMPLATES: ALL, SKILLS, TABLE_NOTES, MODS, rowKey };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
+/* Physics Shift datasets: University, Retail store, Company HR */
+(function (E) {
+  const { mulberry32, helpers, ymd, pad, FIRST, LAST } = E.util;
+  const NOW = '2026-11-11';
+  const addDays = (d, n) => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+  const wpick = (r, pairs) => { const tot = pairs.reduce((a, p) => a + p[1], 0); let x = r() * tot; for (const [v, w] of pairs) { if ((x -= w) < 0) return v; } return pairs[pairs.length - 1][0]; };
+  const insertAll = (db, table, cols, rows) => {
+    const st = db.prepare(`INSERT INTO ${table} (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`);
+    rows.forEach((row) => st.run(row)); st.free();
+  };
+  function namer(r, h) {
+    const used = new Set();
+    return () => { let n, k = 0; do { n = h.pick(FIRST) + ' ' + h.pick(LAST); k++; } while (used.has(n) && k < 500); used.add(n); return n; };
+  }
+  function messyEmail(r, name, domain) {
+    const [f, l] = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(' ');
+    let e = `${f}.${l}@${domain}`;
+    const x = r();
+    if (x < 0.12) e = e.replace(/^./, (ch) => ch.toUpperCase()).replace(/\.(.)/, (m, ch) => '.' + ch.toUpperCase());
+    else if (x < 0.17) e = e.toUpperCase();
+    const y = r();
+    if (y < 0.07) e = e + ' '; else if (y < 0.11) e = ' ' + e;
+    return e;
+  }
+  const PICK_K = (counts) => { const dv = [...new Set(counts)].sort((a, b) => b - a); return dv.length > 2 ? dv[2] : dv.length > 1 ? dv[1] : dv[0] - 1; };
+
+  // ======================================================================
+  // University
+  // ======================================================================
+  const U_SCHEMA = `
+CREATE TABLE departments (id INTEGER PRIMARY KEY, name TEXT, code TEXT, building TEXT);
+CREATE TABLE instructors (id INTEGER PRIMARY KEY, name TEXT, department_id INTEGER, title TEXT, hire_date TEXT);
+CREATE TABLE courses (id INTEGER PRIMARY KEY, code TEXT, title TEXT, department_id INTEGER, credits INTEGER, level INTEGER, instructor_id INTEGER);
+CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, email TEXT, major_id INTEGER, enroll_year INTEGER, advisor_id INTEGER);
+CREATE TABLE terms (id INTEGER PRIMARY KEY, name TEXT, start_date TEXT);
+CREATE TABLE enrollments (id INTEGER PRIMARY KEY, student_id INTEGER, course_id INTEGER, term_id INTEGER, grade TEXT, grade_points REAL);`;
+  const U_DEPTS = [
+    ['Physics', 'PHYS', 'Science Hall', ['General Physics I', 'Modern Physics', 'Electromagnetism', 'Quantum Mechanics']],
+    ['Mathematics', 'MATH', 'Science Hall', ['Calculus I', 'Linear Algebra', 'Probability and Statistics', 'Real Analysis']],
+    ['Biology', 'BIOL', 'Life Sciences', ['General Biology', 'Cell Biology', 'Genetics', 'Human Physiology']],
+    ['Chemistry', 'CHEM', 'Life Sciences', ['General Chemistry', 'Organic Chemistry', 'Physical Chemistry', 'Biochemistry']],
+    ['Computer Science', 'CS', 'Engineering Center', ['Introduction to Programming', 'Data Structures', 'Database Systems', 'Machine Learning']],
+    ['History', 'HIST', 'Liberal Arts', ['World History', 'History of Science', 'Modern Europe', 'History of Medicine']],
+    ['Psychology', 'PSYC', 'Liberal Arts', ['Introduction to Psychology', 'Research Methods', 'Cognitive Psychology', 'Statistics for Psychology']],
+  ];
+  const U_TERMS = [[1, 'Fall 2025', '2025-08-25'], [2, 'Spring 2026', '2026-01-12'], [3, 'Fall 2026', '2026-08-24']];
+  const TERM_NOTE = "Terms: 1 = Fall 2025, 2 = Spring 2026, 3 = Fall 2026 (in progress, no grades yet).";
+  const GP = { A: 4, B: 3, C: 2, D: 1, F: 0, W: null };
+
+  function uGenerate(SQL, seed) {
+    const r = mulberry32(seed), h = helpers(r), name = namer(r, h);
+    const db = new SQL.Database(); db.run(U_SCHEMA);
+    insertAll(db, 'departments', ['id', 'name', 'code', 'building'], U_DEPTS.map((d, i) => [i + 1, d[0], d[1], d[2]]));
+    insertAll(db, 'terms', ['id', 'name', 'start_date'], U_TERMS);
+    const instr = [];
+    const titles = [['Professor', 3], ['Associate Professor', 3], ['Assistant Professor', 3], ['Lecturer', 2]];
+    U_DEPTS.forEach((d, di) => { const n = h.int(2, 3); for (let k = 0; k < n; k++) instr.push([instr.length + 1, name(), di + 1, wpick(r, titles), ymd(h.int(1998, 2025), h.int(1, 12), h.int(1, 28))]); });
+    insertAll(db, 'instructors', ['id', 'name', 'department_id', 'title', 'hire_date'], instr);
+    const courses = [];
+    U_DEPTS.forEach((d, di) => {
+      const mine = instr.filter((x) => x[2] === di + 1);
+      d[3].forEach((title, k) => {
+        const level = (k + 1) * 100, num = level + (k === 0 ? 1 : h.int(10, 60));
+        courses.push([courses.length + 1, `${d[1]} ${num}`, title, di + 1, wpick(r, [[3, 6], [4, 3], [1, 1]]), level, h.pick(mine)[0]]);
+      });
+    });
+    h.shuffle(courses.map((c) => c[0])).slice(0, h.int(2, 3)).forEach((id) => { courses[id - 1][6] = null; });
+    if (!courses.some((c) => c[4] === 4)) courses[h.int(0, courses.length - 1)][4] = 4;
+    insertAll(db, 'courses', ['id', 'code', 'title', 'department_id', 'credits', 'level', 'instructor_id'], courses);
+    const students = [];
+    for (let i = 0; i < 72; i++) {
+      const nm = name(), major = h.int(1, U_DEPTS.length), advisors = instr.filter((x) => x[2] === major);
+      students.push([i + 1, nm, messyEmail(r, nm, 'uni.example.edu'), major, h.pick([2022, 2023, 2024, 2025, 2025, 2026]), r() < 0.12 ? null : h.pick(advisors)[0]]);
+    }
+    insertAll(db, 'students', ['id', 'name', 'email', 'major_id', 'enroll_year', 'advisor_id'], students);
+    const enr = [];
+    const skip = {}; U_TERMS.forEach(([tid]) => { skip[tid] = new Set(h.shuffle(courses.map((c) => c[0])).slice(0, h.int(2, 3))); });
+    students.forEach((s) => {
+      const focused = r() < 0.25;
+      U_TERMS.forEach(([tid, tname]) => {
+        const year = Number(tname.slice(-4)) - (tname.startsWith('Spring') ? 1 : 0);
+        if (s[4] > year) return;
+        if (tid === 3 && s[4] <= 2024 && r() < 0.18) return;
+        const n = h.int(2, 4), taken = new Set();
+        for (let k = 0; k < n; k++) {
+          const pool = courses.filter((c) => !skip[tid].has(c[0]) && !taken.has(c[0]) && (focused || r() < 0.6 ? c[3] === s[3] : true));
+          if (!pool.length) continue;
+          const c = h.pick(pool); taken.add(c[0]);
+          const g = tid === 3 ? null : wpick(r, [['A', 30], ['B', 30], ['C', 18], ['D', 7], ['F', 7], ['W', 8]]);
+          enr.push([s[0], c[0], tid, g, g === null ? null : GP[g]]);
+        }
+      });
+    });
+    h.shuffle(enr.map((_, i) => i)).slice(0, h.int(3, 5)).forEach((i) => enr.push(enr[i].slice()));
+    insertAll(db, 'enrollments', ['id', 'student_id', 'course_id', 'term_id', 'grade', 'grade_points'], enr.map((e, i) => [i + 1, ...e]));
+    const bytes = db.export(); db.close(); return bytes;
+  }
+
+  const U = [];
+  const u = (o) => U.push(o);
+  const dep = (c) => c.pick(c.q('SELECT id, name, code FROM departments'));
+  const gradedTerm = (c) => c.pick([[1, 'Fall 2025'], [2, 'Spring 2026']]);
+  // ----- tier 1
+  u({ id: 'u-dept-courses', tier: 1, skill: 'where', rooms: ['uni:dept'], gen(c) {
+    const d = dep(c);
+    return { prompt: `List the code and title of every ${d.name} course. ${d.name} is department_id ${d.id}.`,
+      sql: `SELECT code, title\nFROM courses\nWHERE department_id = ${d.id};`, broken: `SELECT code, title\nFROM courses\nWHERE id = ${d.id};`,
+      hint: 'courses.id is the course itself. The department is in department_id.' };
+  } });
+  u({ id: 'u-four-credit', tier: 1, skill: 'order', rooms: ['uni:dept'], gen() {
+    return { prompt: 'List the code, title, and credits of every 4-credit course, sorted by code.', ordered: true,
+      sql: 'SELECT code, title, credits\nFROM courses\nWHERE credits = 4\nORDER BY code;', broken: 'SELECT code, title, credits\nFROM courses\nWHERE credits = 4\nORDER BY title;',
+      hint: 'ORDER BY the column the ticket names.' };
+  } });
+  u({ id: 'u-name-like', tier: 1, skill: 'like', rooms: ['uni:advising'], gen(c) {
+    const L = c.pick(c.q('SELECT substr(name,1,1) AS l FROM students GROUP BY l HAVING COUNT(*) BETWEEN 2 AND 9')).l;
+    return { prompt: `List the name and enroll_year of every student whose first name starts with '${L}'.`,
+      sql: `SELECT name, enroll_year\nFROM students\nWHERE name LIKE '${L}%';`, broken: `SELECT name, enroll_year\nFROM students\nWHERE name LIKE '${L}';`,
+      hint: `Without %, LIKE '${L}' only matches the single letter. '${L}%' means "starts with ${L}".` };
+  } });
+  u({ id: 'u-year-in', tier: 1, skill: 'in', rooms: ['uni:advising'], gen(c) {
+    const [a, b] = c.shuffle([2022, 2023, 2024]).slice(0, 2).sort();
+    return { prompt: `List the name and enroll_year of students who enrolled in ${a} or ${b}.`,
+      sql: `SELECT name, enroll_year\nFROM students\nWHERE enroll_year IN (${a}, ${b});`, broken: `SELECT name, enroll_year\nFROM students\nWHERE enroll_year = ${a} AND enroll_year = ${b};`,
+      hint: 'One row has one enroll_year, so AND matches nothing. Use IN (a, b).' };
+  } });
+  u({ id: 'u-no-advisor', tier: 1, skill: 'null', rooms: ['uni:advising'], gen() {
+    return { prompt: "Which students don't have an advisor assigned? Show name and major_id.",
+      sql: 'SELECT name, major_id\nFROM students\nWHERE advisor_id IS NULL;', broken: 'SELECT name, major_id\nFROM students\nWHERE advisor_id = NULL;',
+      hint: 'Missing values are NULL, and = NULL never matches. Use IS NULL.' };
+  } });
+  u({ id: 'u-tba', tier: 1, skill: 'null', rooms: ['uni:dept'], gen() {
+    return { prompt: 'Which courses have no instructor assigned yet? Show code and title.',
+      sql: 'SELECT code, title\nFROM courses\nWHERE instructor_id IS NULL;', broken: 'SELECT code, title\nFROM courses\nWHERE instructor_id = 0;',
+      hint: 'An unassigned instructor is NULL, not 0.' };
+  } });
+  u({ id: 'u-levels', tier: 1, skill: 'distinct', rooms: ['uni:dept'], gen() {
+    return { prompt: 'Which course levels does the university offer? List each level once, lowest first.', ordered: true,
+      sql: 'SELECT DISTINCT level\nFROM courses\nORDER BY level;', broken: 'SELECT level\nFROM courses\nORDER BY level;',
+      hint: 'SELECT DISTINCT keeps one row per value.' };
+  } });
+  u({ id: 'u-recent-hires', tier: 1, skill: 'order', rooms: ['uni:dept'], gen(c) {
+    const n = c.int(3, 5);
+    return { prompt: `Show the ${n} most recently hired instructors: name and hire_date, newest first.`, ordered: true,
+      sql: `SELECT name, hire_date\nFROM instructors\nORDER BY hire_date DESC\nLIMIT ${n};`, broken: `SELECT name, hire_date\nFROM instructors\nORDER BY hire_date\nLIMIT ${n};`,
+      hint: 'Newest first means descending: ORDER BY hire_date DESC.' };
+  } });
+  u({ id: 'u-withdrawals', tier: 1, skill: 'where', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    return { prompt: `List every withdrawal (grade 'W') in ${tn}: enrollment id, student_id, and course_id. ${tn} is term_id ${t}.`,
+      sql: `SELECT id, student_id, course_id\nFROM enrollments\nWHERE term_id = ${t}\n  AND grade = 'W';`, broken: `SELECT id, student_id, course_id\nFROM enrollments\nWHERE term_id = ${t}\n  AND grade = 'w';`,
+      hint: "Text comparisons are case-sensitive. Grades are stored as capital letters." };
+  } });
+  u({ id: 'u-title-like', tier: 1, skill: 'like', rooms: ['uni:dept'], gen(c) {
+    const words = {}; c.q('SELECT title FROM courses').forEach((x) => x.title.split(' ').forEach((w) => { if (w.length >= 5) words[w] = (words[w] || 0) + 1; }));
+    const w = c.pick(Object.keys(words).filter((k) => words[k] >= 2));
+    return { prompt: `List the code and title of every course with '${w}' anywhere in its title.`,
+      sql: `SELECT code, title\nFROM courses\nWHERE title LIKE '%${w}%';`, broken: `SELECT code, title\nFROM courses\nWHERE title LIKE '${w}%';`,
+      hint: `'${w}%' only matches titles that START with the word. Put % on both sides for "anywhere".` };
+  } });
+  // ----- tier 2
+  u({ id: 'u-term-count', tier: 2, skill: 'count', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = c.pick(U_TERMS);
+    return { prompt: `How many different students are taking at least one course in ${tn} (term_id ${t})?`,
+      sql: `SELECT COUNT(DISTINCT student_id)\nFROM enrollments\nWHERE term_id = ${t};`, broken: `SELECT COUNT(student_id)\nFROM enrollments\nWHERE term_id = ${t};`,
+      hint: 'Students take several courses, so they appear several times. COUNT(DISTINCT student_id) counts each once.' };
+  } });
+  u({ id: 'u-course-enroll', tier: 2, skill: 'groupby', rooms: ['uni:registrar'], gen(c) {
+    const d = dep(c), [t, tn] = c.pick(U_TERMS);
+    const ids = c.q(`SELECT id FROM courses WHERE department_id = ${d.id}`).map((x) => x.id);
+    return { prompt: `For each ${d.name} course (course_id ${ids.join(', ')}), how many enrollments are there in ${tn} (term_id ${t})? Show course_id and the count.`,
+      sql: `SELECT course_id, COUNT(*)\nFROM enrollments\nWHERE term_id = ${t}\n  AND course_id IN (${ids.join(', ')})\nGROUP BY course_id;`,
+      broken: `SELECT course_id, COUNT(*)\nFROM enrollments\nWHERE term_id = ${t}\n  AND course_id IN (${ids.join(', ')});`,
+      hint: 'Without GROUP BY, COUNT(*) collapses everything into one row.' };
+  } });
+  u({ id: 'u-course-gpa', tier: 2, skill: 'aggregate', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    const co = c.pick(c.q(`SELECT c.id, c.code FROM courses c WHERE (SELECT COUNT(grade_points) FROM enrollments e WHERE e.course_id = c.id AND e.term_id = ${t}) >= 3`));
+    return { prompt: `What was the average grade_points in ${co.code} (course_id ${co.id}) in ${tn} (term_id ${t})? Round to 2 decimals. Withdrawals have no grade points.`,
+      sql: `SELECT ROUND(AVG(grade_points), 2)\nFROM enrollments\nWHERE course_id = ${co.id}\n  AND term_id = ${t};`,
+      hint: 'AVG skips NULLs automatically, so withdrawals drop out on their own.' };
+  } });
+  u({ id: 'u-big-courses', tier: 2, skill: 'having', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = c.pick(U_TERMS);
+    const k = PICK_K(c.q(`SELECT COUNT(*) AS n FROM enrollments WHERE term_id = ${t} GROUP BY course_id`).map((x) => x.n));
+    return { prompt: `Which course_ids have more than ${k} enrollments in ${tn} (term_id ${t})? Show course_id and the count.`,
+      sql: `SELECT course_id, COUNT(*)\nFROM enrollments\nWHERE term_id = ${t}\nGROUP BY course_id\nHAVING COUNT(*) > ${k};`,
+      broken: `SELECT course_id, COUNT(*)\nFROM enrollments\nWHERE term_id = ${t}\nGROUP BY course_id\nHAVING COUNT(*) >= ${k};`,
+      hint: 'Filter groups with HAVING. "More than" means >, not >=.' };
+  } });
+  u({ id: 'u-majors', tier: 2, skill: 'groupby', rooms: ['uni:advising'], gen() {
+    return { prompt: 'How many students are in each major? Show major_id and the count.',
+      sql: 'SELECT major_id, COUNT(*)\nFROM students\nGROUP BY major_id;', broken: 'SELECT major_id, COUNT(*)\nFROM students;',
+      hint: '"Each major" means one row per major_id: GROUP BY major_id.' };
+  } });
+  u({ id: 'u-grade-dist', tier: 2, skill: 'groupby', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    const co = c.pick(c.q(`SELECT c.id, c.code FROM courses c WHERE (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id AND e.term_id = ${t}) >= 4`));
+    return { prompt: `Show the grade distribution for ${co.code} (course_id ${co.id}) in ${tn} (term_id ${t}): each grade and how many students got it.`,
+      sql: `SELECT grade, COUNT(*)\nFROM enrollments\nWHERE course_id = ${co.id}\n  AND term_id = ${t}\nGROUP BY grade;`,
+      hint: 'GROUP BY grade, then COUNT(*).' };
+  } });
+  u({ id: 'u-coalesce', tier: 2, skill: 'coalesce', rooms: ['uni:dept'], gen(c) {
+    const d = dep(c);
+    return { prompt: `List every ${d.name} course (department_id ${d.id}) with its code and instructor_id, showing 'TBA' where no instructor is assigned.`,
+      sql: `SELECT code, COALESCE(instructor_id, 'TBA') AS instructor\nFROM courses\nWHERE department_id = ${d.id};`,
+      broken: `SELECT code, CASE WHEN instructor_id = NULL THEN 'TBA' ELSE instructor_id END AS instructor\nFROM courses\nWHERE department_id = ${d.id};`,
+      headers: ['courses.code', "instructor_id, or 'TBA'"], hint: "COALESCE(col, 'TBA') returns the column, or 'TBA' when it's NULL." };
+  } });
+  u({ id: 'u-email-clean', tier: 2, skill: 'text', rooms: ['uni:advising'], gen(c) {
+    const d = c.pickR(c.q("SELECT DISTINCT d.id, d.name FROM departments d JOIN students s ON s.major_id = d.id WHERE s.email <> LOWER(TRIM(s.email))"));
+    return { prompt: `Emails were typed in inconsistently. Show each ${d.name} major's name (major_id ${d.id}) and their email cleaned up: all lowercase, no spaces at either end.`,
+      sql: `SELECT name, LOWER(TRIM(email)) AS email\nFROM students\nWHERE major_id = ${d.id};`, broken: `SELECT name, LOWER(email) AS email\nFROM students\nWHERE major_id = ${d.id};`,
+      headers: ['students.name', 'cleaned email'], hint: 'LOWER() fixes capitals, TRIM() removes spaces at the ends. You can nest them.' };
+  } });
+  u({ id: 'u-email-spaces', tier: 2, skill: 'text', rooms: ['uni:advising'], gen() {
+    return { prompt: 'Which students have extra spaces at the start or end of their email? Show name and email.',
+      sql: "SELECT name, email\nFROM students\nWHERE email <> TRIM(email);", broken: "SELECT name, email\nFROM students\nWHERE email LIKE ' %';",
+      hint: "A value with extra spaces isn't equal to its TRIM()'d version. LIKE ' %' only catches leading spaces." };
+  } });
+  u({ id: 'u-tenure', tier: 2, skill: 'datemath', rooms: ['uni:dept'], gen(c) {
+    const d = dep(c);
+    return { prompt: `For each ${d.name} instructor (department_id ${d.id}), show name and full years employed as of ${NOW}. Count a year as 365.25 days and round down.`,
+      sql: `SELECT name,\n       CAST((julianday('${NOW}') - julianday(hire_date)) / 365.25 AS INTEGER) AS years\nFROM instructors\nWHERE department_id = ${d.id};`,
+      headers: ['instructors.name', 'full years employed'], hint: "julianday(a) - julianday(b) gives days. Divide by 365.25 and CAST(... AS INTEGER) to round down." };
+  } });
+  // ----- tier 3
+  u({ id: 'u-roster', tier: 3, skill: 'join3', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = c.pick(U_TERMS);
+    const co = c.pick(c.q(`SELECT c.code FROM courses c WHERE (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id AND e.term_id = ${t}) BETWEEN 2 AND 10`));
+    return { prompt: `Who is enrolled in ${co.code} in ${tn}? List student names. ${tn} is term_id ${t}.`,
+      sql: `SELECT s.name\nFROM enrollments e\nJOIN students s ON s.id = e.student_id\nJOIN courses c ON c.id = e.course_id\nWHERE c.code = '${co.code}'\n  AND e.term_id = ${t};`,
+      broken: `SELECT s.name\nFROM enrollments e\nJOIN students s ON s.id = e.course_id\nJOIN courses c ON c.id = e.course_id\nWHERE c.code = '${co.code}'\n  AND e.term_id = ${t};`,
+      hint: 'enrollments is the bridge: student_id points to students, course_id points to courses.' };
+  } });
+  u({ id: 'u-course-instructor', tier: 3, skill: 'join', rooms: ['uni:dept'], gen(c) {
+    const d = dep(c);
+    return { prompt: `For each ${d.name} course (department_id ${d.id}) that has an instructor, show the course code and the instructor's name.`,
+      sql: `SELECT c.code, i.name\nFROM courses c\nJOIN instructors i ON i.id = c.instructor_id\nWHERE c.department_id = ${d.id};`,
+      broken: `SELECT c.code, i.name\nFROM courses c\nJOIN instructors i ON i.department_id = c.department_id\nWHERE c.department_id = ${d.id};`,
+      hint: 'Match the instructor by courses.instructor_id = instructors.id, not by department.' };
+  } });
+  u({ id: 'u-advisor-names', tier: 3, skill: 'join', rooms: ['uni:advising'], gen(c) {
+    const d = dep(c);
+    return { prompt: `For each ${d.name} major (major_id ${d.id}) who has an advisor, show the student's name and the advisor's name.`,
+      sql: `SELECT s.name AS student, i.name AS advisor\nFROM students s\nJOIN instructors i ON i.id = s.advisor_id\nWHERE s.major_id = ${d.id};`,
+      headers: ['students.name', 'instructors.name (advisor)'], hint: 'students.advisor_id points to instructors.id.' };
+  } });
+  u({ id: 'u-empty-courses', tier: 3, skill: 'leftjoin', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = c.pick(U_TERMS);
+    return { prompt: `Which courses have no enrollments at all in ${tn} (term_id ${t})? Show code and title.`,
+      sql: `SELECT c.code, c.title\nFROM courses c\nLEFT JOIN enrollments e ON e.course_id = c.id AND e.term_id = ${t}\nWHERE e.id IS NULL;`,
+      broken: `SELECT c.code, c.title\nFROM courses c\nLEFT JOIN enrollments e ON e.course_id = c.id\nWHERE e.term_id = ${t}\n  AND e.id IS NULL;`,
+      hint: 'Put the term filter inside ON. In WHERE, it throws away the empty matches LEFT JOIN kept. NOT IN (subquery) also works.' };
+  } });
+  u({ id: 'u-credit-load', tier: 3, skill: 'join', rooms: ['uni:advising'], gen(c) {
+    const d = dep(c);
+    return { prompt: `How many credits is each ${d.name} major (major_id ${d.id}) taking in Fall 2026 (term_id 3)? Show name and total credits, only for students enrolled that term.`,
+      sql: `SELECT s.name, SUM(c.credits) AS credits\nFROM students s\nJOIN enrollments e ON e.student_id = s.id\nJOIN courses c ON c.id = e.course_id\nWHERE s.major_id = ${d.id}\n  AND e.term_id = 3\nGROUP BY s.id;`,
+      headers: ['students.name', 'total credits'], hint: 'Credits live in courses. Join students → enrollments → courses, then SUM per student.' };
+  } });
+  u({ id: 'u-dept-gpa', tier: 3, skill: 'join', rooms: ['uni:dean'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    return { prompt: `What was the average grade_points in each department's courses in ${tn} (term_id ${t})? Show department name and the average, rounded to 2 decimals.`,
+      sql: `SELECT d.name, ROUND(AVG(e.grade_points), 2) AS avg_points\nFROM enrollments e\nJOIN courses c ON c.id = e.course_id\nJOIN departments d ON d.id = c.department_id\nWHERE e.term_id = ${t}\nGROUP BY d.id;`,
+      headers: ['departments.name', 'average grade_points, 2 decimals'], hint: 'enrollments → courses gives the department_id, courses → departments gives the name.' };
+  } });
+  u({ id: 'u-teaching-load', tier: 3, skill: 'leftjoin', rooms: ['uni:dept'], gen(c) {
+    const d = dep(c);
+    return { prompt: `For each ${d.name} instructor (department_id ${d.id}), how many courses do they teach? Show name and count, including anyone with zero.`,
+      sql: `SELECT i.name, COUNT(c.id) AS courses\nFROM instructors i\nLEFT JOIN courses c ON c.instructor_id = i.id\nWHERE i.department_id = ${d.id}\nGROUP BY i.id;`,
+      broken: `SELECT i.name, COUNT(*) AS courses\nFROM instructors i\nLEFT JOIN courses c ON c.instructor_id = i.id\nWHERE i.department_id = ${d.id}\nGROUP BY i.id;`,
+      headers: ['instructors.name', 'count'], hint: 'COUNT(*) counts the empty LEFT JOIN row as 1. COUNT(c.id) counts only real matches.' };
+  } });
+  u({ id: 'u-dupes', tier: 3, skill: 'dedupe', rooms: ['uni:registrar'], gen() {
+    return { prompt: 'Some enrollments were entered twice. Which student_id, course_id, term_id combinations appear more than once, and how many times?',
+      sql: 'SELECT student_id, course_id, term_id, COUNT(*)\nFROM enrollments\nGROUP BY student_id, course_id, term_id\nHAVING COUNT(*) > 1;',
+      broken: 'SELECT student_id, course_id, term_id, COUNT(*)\nFROM enrollments\nGROUP BY student_id, course_id\nHAVING COUNT(*) > 1;',
+      grain: 'one row per duplicated student + course + term combination', hint: 'GROUP BY every column that defines "the same enrollment", then HAVING COUNT(*) > 1.' };
+  } });
+  // ----- tier 4
+  u({ id: 'u-above-avg', tier: 4, skill: 'subquery', rooms: ['uni:registrar'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    const co = c.pick(c.q(`SELECT c.id, c.code FROM courses c WHERE (SELECT COUNT(DISTINCT grade_points) FROM enrollments e WHERE e.course_id = c.id AND e.term_id = ${t}) >= 2`));
+    return { prompt: `Which students scored above the class average in ${co.code} (course_id ${co.id}) in ${tn} (term_id ${t})? Show name and grade_points.`,
+      sql: `SELECT s.name, e.grade_points\nFROM enrollments e\nJOIN students s ON s.id = e.student_id\nWHERE e.course_id = ${co.id}\n  AND e.term_id = ${t}\n  AND e.grade_points > (SELECT AVG(grade_points)\n                        FROM enrollments\n                        WHERE course_id = ${co.id} AND term_id = ${t});`,
+      broken: `SELECT s.name, e.grade_points\nFROM enrollments e\nJOIN students s ON s.id = e.student_id\nWHERE e.course_id = ${co.id}\n  AND e.term_id = ${t}\n  AND e.grade_points > (SELECT AVG(grade_points) FROM enrollments);`,
+      hint: 'The subquery has to average only this course in this term.' };
+  } });
+  u({ id: 'u-honors', tier: 4, skill: 'case', rooms: ['uni:dean'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    return { prompt: `Label every graded enrollment in ${tn} (term_id ${t}): 'honors' for grade_points of 3.5 or more, 'passing' for 2 or more, otherwise 'at risk'. Show each label and how many enrollments have it. Skip withdrawals.`,
+      sql: `SELECT CASE WHEN grade_points >= 3.5 THEN 'honors'\n            WHEN grade_points >= 2 THEN 'passing'\n            ELSE 'at risk' END AS standing,\n       COUNT(*)\nFROM enrollments\nWHERE term_id = ${t}\n  AND grade_points IS NOT NULL\nGROUP BY standing;`,
+      broken: `SELECT CASE WHEN grade_points >= 2 THEN 'passing'\n            WHEN grade_points >= 3.5 THEN 'honors'\n            ELSE 'at risk' END AS standing,\n       COUNT(*)\nFROM enrollments\nWHERE term_id = ${t}\n  AND grade_points IS NOT NULL\nGROUP BY standing;`,
+      headers: ["label ('honors', 'passing', or 'at risk')", 'count'], hint: 'CASE stops at the first true WHEN, so check the highest threshold first.' };
+  } });
+  u({ id: 'u-pivot', tier: 4, skill: 'pivot', rooms: ['uni:dean'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    return { prompt: `For each department code, how many A grades and how many F grades were given in ${tn} (term_id ${t})? Show code, the A count, and the F count as three columns.`,
+      sql: `SELECT d.code,\n       SUM(CASE WHEN e.grade = 'A' THEN 1 ELSE 0 END) AS a_grades,\n       SUM(CASE WHEN e.grade = 'F' THEN 1 ELSE 0 END) AS f_grades\nFROM enrollments e\nJOIN courses c ON c.id = e.course_id\nJOIN departments d ON d.id = c.department_id\nWHERE e.term_id = ${t}\nGROUP BY d.id;`,
+      headers: ['departments.code', 'number of A grades', 'number of F grades'], hint: "SUM(CASE WHEN grade = 'A' THEN 1 ELSE 0 END) counts only A's. Make one of those per column." };
+  } });
+  u({ id: 'u-never-failed', tier: 4, skill: 'exists', rooms: ['uni:advising'], gen(c) {
+    const d = c.pickR(c.q("SELECT DISTINCT d.id, d.name FROM departments d JOIN students s ON s.major_id = d.id JOIN enrollments e ON e.student_id = s.id WHERE e.grade = 'F'"));
+    return { prompt: `Which ${d.name} majors (major_id ${d.id}) have never received an F? Show their names.`,
+      sql: `SELECT s.name\nFROM students s\nWHERE s.major_id = ${d.id}\n  AND NOT EXISTS (SELECT 1\n                  FROM enrollments e\n                  WHERE e.student_id = s.id\n                    AND e.grade = 'F');`,
+      broken: `SELECT DISTINCT s.name\nFROM students s\nJOIN enrollments e ON e.student_id = s.id\nWHERE s.major_id = ${d.id}\n  AND e.grade <> 'F';`,
+      hint: "Filtering out F rows still keeps the student's other rows. Ask whether ANY F row exists for that student: NOT EXISTS." };
+  } });
+  u({ id: 'u-only-major', tier: 4, skill: 'exists', rooms: ['uni:advising'], gen(c) {
+    const d = c.pickR(c.q("SELECT s.major_id AS id, d.name FROM students s JOIN departments d ON d.id = s.major_id WHERE EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id = s.id) AND NOT EXISTS (SELECT 1 FROM enrollments e JOIN courses c ON c.id = e.course_id WHERE e.student_id = s.id AND c.department_id <> s.major_id) GROUP BY s.major_id"));
+    return { prompt: `Which ${d.name} majors (major_id ${d.id}) have only ever taken courses in their own major's department? Only count students with at least one enrollment. Show their names.`,
+      sql: `SELECT s.name\nFROM students s\nWHERE s.major_id = ${d.id}\n  AND EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id = s.id)\n  AND NOT EXISTS (SELECT 1\n                  FROM enrollments e\n                  JOIN courses c ON c.id = e.course_id\n                  WHERE e.student_id = s.id\n                    AND c.department_id <> s.major_id);`,
+      broken: `SELECT DISTINCT s.name\nFROM students s\nJOIN enrollments e ON e.student_id = s.id\nJOIN courses c ON c.id = e.course_id\nWHERE s.major_id = ${d.id}\n  AND c.department_id = s.major_id;`,
+      hint: '"Only" means no course outside the major exists. Filtering rows to in-major courses still keeps students who also took outside courses. Use NOT EXISTS, tied to the student with e.student_id = s.id.' };
+  } });
+  u({ id: 'u-union', tier: 4, skill: 'union', rooms: ['uni:dept'], gen(c) {
+    const d = dep(c);
+    return { prompt: `Make one list of everyone in ${d.name} (department_id ${d.id}): instructors in the department and students majoring in it. Show each name and a role column saying 'instructor' or 'student'.`,
+      sql: `SELECT name, 'instructor' AS role\nFROM instructors\nWHERE department_id = ${d.id}\nUNION\nSELECT name, 'student'\nFROM students\nWHERE major_id = ${d.id};`,
+      broken: `SELECT name, 'instructor' AS role\nFROM instructors\nWHERE department_id = ${d.id}\nUNION\nSELECT name, 'student'\nFROM students\nWHERE advisor_id = ${d.id};`,
+      headers: ['person name', "role ('instructor' or 'student')"], grain: 'one row per person', hint: 'Write each list as its own SELECT with the same number of columns, and put UNION between them.' };
+  } });
+  u({ id: 'u-not-back', tier: 4, skill: 'subquery', rooms: ['uni:advising'], gen() {
+    return { prompt: 'Which students took courses in Spring 2026 (term_id 2) but are not taking anything in Fall 2026 (term_id 3)? Show their names.',
+      sql: 'SELECT name\nFROM students\nWHERE id IN (SELECT student_id FROM enrollments WHERE term_id = 2)\n  AND id NOT IN (SELECT student_id FROM enrollments WHERE term_id = 3);',
+      broken: 'SELECT DISTINCT s.name\nFROM students s\nJOIN enrollments e ON e.student_id = s.id\nWHERE e.term_id = 2\n  AND e.term_id <> 3;',
+      hint: 'One row can\'t answer "this term but not that one". Build two lists: IN the Spring list and NOT IN the Fall list.' };
+  } });
+  // ----- tier 5
+  u({ id: 'u-rank-gpa', tier: 5, skill: 'window', rooms: ['uni:dean'], gen(c) {
+    const d = dep(c), [t, tn] = gradedTerm(c);
+    return { prompt: `Rank the ${d.name} majors (major_id ${d.id}) by their ${tn} GPA (average grade_points, term_id ${t}), highest first, with ties sharing a rank. Show name, GPA rounded to 2 decimals, and rank. Skip withdrawals.`,
+      sql: `SELECT s.name, ROUND(AVG(e.grade_points), 2) AS gpa,\n       RANK() OVER (ORDER BY AVG(e.grade_points) DESC) AS rnk\nFROM students s\nJOIN enrollments e ON e.student_id = s.id\nWHERE s.major_id = ${d.id}\n  AND e.term_id = ${t}\n  AND e.grade_points IS NOT NULL\nGROUP BY s.id;`,
+      headers: ['students.name', 'GPA, 2 decimals', 'rank (ties share)'], hint: 'GROUP BY student for the GPA, then RANK() OVER (ORDER BY AVG(...) DESC).' };
+  } });
+  u({ id: 'u-running-credits', tier: 5, skill: 'window', rooms: ['uni:advising'], gen(c) {
+    const s = c.pick(c.q('SELECT student_id AS id FROM enrollments GROUP BY student_id HAVING COUNT(DISTINCT term_id) = 3'));
+    return { prompt: `For student_id ${s.id}, show each term's name, the credits they took that term, and a running total of credits, in term order.`, ordered: true,
+      sql: `SELECT t.name, SUM(c.credits) AS credits,\n       SUM(SUM(c.credits)) OVER (ORDER BY t.start_date) AS running\nFROM enrollments e\nJOIN courses c ON c.id = e.course_id\nJOIN terms t ON t.id = e.term_id\nWHERE e.student_id = ${s.id}\nGROUP BY t.id\nORDER BY t.start_date;`,
+      headers: ['terms.name', 'credits that term', 'running total'], hint: 'Order terms by start_date, not name. SUM(SUM(credits)) OVER (ORDER BY start_date) is the running total.' };
+  } });
+  u({ id: 'u-cte-dept', tier: 5, skill: 'cte', rooms: ['uni:dean'], gen(c) {
+    const [t, tn] = gradedTerm(c);
+    return { prompt: `Which departments had a higher average grade_points in ${tn} (term_id ${t}) than the university-wide average that term? Show department name and its average, rounded to 2 decimals.`,
+      sql: `WITH dept AS (\n  SELECT c.department_id, AVG(e.grade_points) AS avg_points\n  FROM enrollments e\n  JOIN courses c ON c.id = e.course_id\n  WHERE e.term_id = ${t}\n  GROUP BY c.department_id\n)\nSELECT d.name, ROUND(dept.avg_points, 2)\nFROM dept\nJOIN departments d ON d.id = dept.department_id\nWHERE dept.avg_points > (SELECT AVG(grade_points) FROM enrollments WHERE term_id = ${t});`,
+      headers: ['departments.name', 'average grade_points, 2 decimals'], grain: 'one row per department', hint: 'Average per department in a CTE, then compare to the overall average for the same term.' };
+  } });
+  u({ id: 'u-dedupe-keep', tier: 5, skill: 'dedupe', rooms: ['uni:registrar'], gen() {
+    return { prompt: 'Clean up the duplicate enrollments: list the ids of the extra copies to delete. Rows are duplicates when student_id, course_id, and term_id all match. Keep the lowest id in each group.',
+      sql: 'SELECT id\nFROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY student_id, course_id, term_id\n                                  ORDER BY id) AS rn\n      FROM enrollments)\nWHERE rn > 1;',
+      broken: 'SELECT id\nFROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY student_id, course_id, term_id\n                                  ORDER BY id) AS rn\n      FROM enrollments)\nWHERE rn = 1;',
+      grain: 'one row per extra copy', hint: 'ROW_NUMBER() OVER (PARTITION BY the matching columns ORDER BY id) numbers each copy. Keep row 1; delete the rest. NOT IN (SELECT MIN(id) ... GROUP BY ...) also works.' };
+  } });
+  u({ id: 'u-gpa-change', tier: 5, skill: 'window', rooms: ['uni:advising'], gen(c) {
+    const s = c.pick(c.q('SELECT student_id AS id FROM enrollments WHERE grade_points IS NOT NULL GROUP BY student_id HAVING COUNT(DISTINCT term_id) = 2'));
+    return { prompt: `For student_id ${s.id}, show each graded term's name, their GPA that term (average grade_points, 2 decimals), and the change from the previous term (empty for the first). Term order.`, ordered: true,
+      sql: `SELECT t.name, ROUND(AVG(e.grade_points), 2) AS gpa,\n       ROUND(AVG(e.grade_points) - LAG(AVG(e.grade_points)) OVER (ORDER BY t.start_date), 2) AS change\nFROM enrollments e\nJOIN terms t ON t.id = e.term_id\nWHERE e.student_id = ${s.id}\n  AND e.grade_points IS NOT NULL\nGROUP BY t.id\nORDER BY t.start_date;`,
+      headers: ['terms.name', 'GPA, 2 decimals', 'change from previous term'], hint: 'LAG(AVG(...)) OVER (ORDER BY start_date) is the previous term\'s GPA.' };
+  } });
+  u({ id: 'u-top-course', tier: 5, skill: 'window', rooms: ['uni:dean'], gen(c) {
+    const [t, tn] = c.pick(U_TERMS);
+    return { prompt: `What was the biggest course in each department in ${tn} (term_id ${t}), by number of enrollments? Show department code, course code, and enrollment count. Break ties by course code, alphabetically first.`,
+      sql: `SELECT dcode, ccode, n\nFROM (SELECT d.code AS dcode, c.code AS ccode, COUNT(*) AS n,\n             ROW_NUMBER() OVER (PARTITION BY d.id ORDER BY COUNT(*) DESC, c.code) AS rn\n      FROM enrollments e\n      JOIN courses c ON c.id = e.course_id\n      JOIN departments d ON d.id = c.department_id\n      WHERE e.term_id = ${t}\n      GROUP BY c.id)\nWHERE rn = 1;`,
+      headers: ['departments.code', 'courses.code', 'enrollment count'], grain: 'one row per department', hint: 'Count per course, number courses within each department with ROW_NUMBER() OVER (PARTITION BY department ...), keep row 1.' };
+  } });
+  // ----- predict
+  u({ id: 'p-u-countpts', tier: 2, skill: 'null', predict: true, rooms: ['uni:registrar'], gen(c) {
+    const s = c.pick(c.q("SELECT student_id AS id FROM enrollments WHERE grade = 'W' GROUP BY student_id"));
+    return { sampleSql: `SELECT id, course_id, term_id, grade, grade_points FROM enrollments WHERE student_id = ${s.id} AND term_id < 3 ORDER BY term_id, id`,
+      query: 'SELECT COUNT(grade_points)\nFROM sample;', prompt: 'What number does this query return?', hint: 'COUNT(column) skips NULLs, and withdrawals have NULL grade_points.' };
+  } });
+  u({ id: 'p-u-avg', tier: 2, skill: 'aggregate', predict: true, rooms: ['uni:registrar'], gen(c) {
+    const s = c.pick(c.q("SELECT student_id AS id FROM enrollments WHERE term_id < 3 GROUP BY student_id HAVING COUNT(*) BETWEEN 3 AND 7 AND SUM(grade = 'W') >= 1"));
+    return { sampleSql: `SELECT id, course_id, term_id, grade, grade_points FROM enrollments WHERE student_id = ${s.id} AND term_id < 3 ORDER BY term_id, id`,
+      query: 'SELECT ROUND(AVG(grade_points), 2)\nFROM sample;', prompt: 'What number does this query return? Two decimals.', hint: 'AVG ignores NULL rows entirely. They are not counted as zero.' };
+  } });
+
+  E.registerContext({
+    id: 'university', name: 'University', short: 'University', blurb: 'Students, courses, and grades. Many-to-many through enrollments.',
+    schema: U_SCHEMA, generate: uGenerate, templates: U,
+    notes: {
+      departments: 'Academic departments. code is the course prefix, like PHYS.',
+      instructors: 'Faculty. department_id points to departments.',
+      courses: 'Courses offered. instructor_id is empty when nobody is assigned yet.',
+      students: 'Students. major_id points to departments; advisor_id points to instructors. Emails were typed inconsistently.',
+      terms: TERM_NOTE + ' Sort terms by start_date.',
+      enrollments: 'One row per student per course per term. grade W = withdrew (no grade_points). Some rows were entered twice.',
+    },
+    tableOrder: ['enrollments', 'students', 'courses', 'instructors', 'departments', 'terms'],
+    singular: { departments: 'department', instructors: 'instructor', courses: 'course', students: 'student', terms: 'term', enrollments: 'enrollment', major: 'major', major_ids: 'major', course_ids: 'course', courses_: 'course' },
+    areas: [
+      { key: 'uni:registrar', label: "Registrar's office", color: '--ct', tier: 1, roles: ['registrar', 'records clerk'] },
+      { key: 'uni:advising', label: 'Advising center', color: '--rad', tier: 1, roles: ['academic advisor', 'student services'] },
+      { key: 'uni:dept', label: 'Department chairs', color: '--mri', tier: 1, roles: ['department chair', 'department coordinator'] },
+      { key: 'uni:dean', label: "Dean's office", color: '--dept', tier: 3, roles: ['associate dean', 'institutional research'] },
+    ],
+  });
+
+  // ======================================================================
+  // Retail store
+  // ======================================================================
+  const R_SCHEMA = `
+CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, category_id INTEGER, price REAL, cost REAL, discontinued INTEGER);
+CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, email TEXT, city TEXT, state TEXT, signup_date TEXT, referred_by INTEGER);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, order_date TEXT, status TEXT, ship_date TEXT);
+CREATE TABLE order_items (id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER, quantity INTEGER, unit_price REAL, discount REAL);`;
+  const R_CATS = [
+    ['Kitchen', [['Ceramic Mug', 14], ['Travel Mug', 22], ['Chef Knife', 65], ['Cutting Board', 28], ['French Press', 35], ['Spice Rack', 30]]],
+    ['Outdoor', [['Camping Lantern', 32], ['Trail Backpack', 89], ['Water Bottle', 18], ['Hammock', 55], ['Folding Chair', 40]]],
+    ['Office', [['Desk Lamp', 42], ['Notebook Set', 12], ['Gel Pens', 9], ['Monitor Stand', 48], ['Desk Organizer', 24]]],
+    ['Electronics', [['USB-C Cable', 11], ['Wireless Mouse', 29], ['Bluetooth Speaker', 79], ['Phone Charger', 25], ['Webcam', 69]]],
+    ['Home Decor', [['Throw Pillow', 26], ['Wall Clock', 38], ['Scented Candle', 16], ['Picture Frame', 19], ['Table Lamp', 58]]],
+    ['Books', [['SQL Basics', 34], ['Data Cookbook', 42], ['Hiking Guide', 21], ['Desk Atlas', 27]]],
+  ];
+  const R_CITIES = [['Chicago', 'IL'], ['Springfield', 'IL'], ['Madison', 'WI'], ['Milwaukee', 'WI'], ['Minneapolis', 'MN'], ['St. Paul', 'MN'], ['Des Moines', 'IA'], ['Omaha', 'NE']];
+
+  function rGenerate(SQL, seed) {
+    const r = mulberry32(seed), h = helpers(r), name = namer(r, h);
+    const db = new SQL.Database(); db.run(R_SCHEMA);
+    insertAll(db, 'categories', ['id', 'name'], R_CATS.map((c, i) => [i + 1, c[0]]));
+    const prods = [];
+    R_CATS.forEach((cat, ci) => cat[1].forEach(([n, base]) => {
+      const price = Math.round((base * (0.85 + r() * 0.3)) - 0.01) + 0.99 - 1;
+      const p = Math.max(4.99, Math.round(price) - 0.01);
+      prods.push([prods.length + 1, n, ci + 1, p, Math.round(p * (0.4 + r() * 0.3) * 100) / 100, r() < 0.12 ? 1 : 0]);
+    }));
+    insertAll(db, 'products', ['id', 'name', 'category_id', 'price', 'cost', 'discontinued'], prods);
+    const custs = [];
+    for (let i = 0; i < 64; i++) {
+      const nm = name(), [city, st] = h.pick(R_CITIES);
+      const x = r(); const cityTxt = x < 0.08 ? city.toLowerCase() : x < 0.13 ? city.toUpperCase() : x < 0.2 ? city + ' ' : city;
+      custs.push([i + 1, nm, messyEmail(r, nm, 'mail.example.com'), cityTxt, st, ymd(h.int(2023, 2026), h.int(1, 12), h.int(1, 28)), i > 4 && r() < 0.3 ? h.int(1, i) : null]);
+    }
+    h.shuffle(custs.slice(0, 50)).slice(0, h.int(3, 4)).forEach((orig) => {
+      const e = orig[2].trim(); const v = r() < 0.5 ? e.toUpperCase() : ' ' + e.toLowerCase();
+      custs.push([custs.length + 1, orig[1], v, orig[3], orig[4], ymd(2026, h.int(1, 9), h.int(1, 28)), null]);
+    });
+    custs.sort((a, b) => a[0] - b[0]);
+    insertAll(db, 'customers', ['id', 'name', 'email', 'city', 'state', 'signup_date', 'referred_by'], custs);
+    const neverSold = new Set(h.shuffle(prods.map((p) => p[0])).slice(0, h.int(2, 3)));
+    const sellable = prods.filter((p) => !neverSold.has(p[0]));
+    const orders = [], items = [];
+    for (let i = 0; i < 230; i++) {
+      const cu = h.pick(custs), mo = h.int(1, 10), od = ymd(2026, mo, h.int(1, mo === 10 ? 28 : 28));
+      let status = wpick(r, [['delivered', 55], ['shipped', 14], ['pending', 7], ['cancelled', 13], ['returned', 11]]);
+      if (status === 'pending' && mo < 10) status = 'delivered';
+      const ship = status === 'pending' || status === 'cancelled' ? null : addDays(od, wpick(r, [[1, 3], [2, 5], [3, 5], [4, 3], [5, 2], [7, 1], [9, 1]]));
+      orders.push([i + 1, cu[0], od, status, ship]);
+      const k = wpick(r, [[1, 4], [2, 4], [3, 2], [4, 1]]);
+      h.shuffle(sellable).slice(0, k).forEach((p) => items.push([i + 1, p[0], wpick(r, [[1, 6], [2, 3], [3, 1], [4, 1]]), p[3], wpick(r, [[0, 8], [0.1, 2], [0.2, 1]])]));
+    }
+    orders.sort((a, b) => a[2].localeCompare(b[2]) || a[0] - b[0]);
+    const remap = {}; orders.forEach((o, i) => { remap[o[0]] = i + 1; o[0] = i + 1; });
+    items.forEach((it) => { it[0] = remap[it[0]]; });
+    items.sort((a, b) => a[0] - b[0]);
+    insertAll(db, 'orders', ['id', 'customer_id', 'order_date', 'status', 'ship_date'], orders);
+    insertAll(db, 'order_items', ['id', 'order_id', 'product_id', 'quantity', 'unit_price', 'discount'], items.map((it, i) => [i + 1, ...it]));
+    const bytes = db.export(); db.close(); return bytes;
+  }
+
+  const R = [];
+  const rr = (o) => R.push(o);
+  const cat = (c) => c.pick(c.q('SELECT id, name FROM categories'));
+  const month = (c) => { const m = c.int(1, 9); return { m: `2026-${pad(m)}`, name: E.util.MONTHS[m - 1] + ' 2026', start: `2026-${pad(m)}-01`, end: `2026-${pad(m)}-${pad(E.util.DAYS_IN[m - 1])}` }; };
+  const TOTAL = 'quantity * unit_price';
+  // ----- tier 1
+  rr({ id: 'r-cat-cheap', tier: 1, skill: 'where', rooms: ['ret:warehouse'], gen(c) {
+    const ct = cat(c); const prices = c.q(`SELECT price FROM products WHERE category_id = ${ct.id} ORDER BY price`).map((x) => x.price);
+    const lim = Math.ceil(prices[Math.floor(prices.length / 2)]);
+    return { prompt: `List the name and price of every ${ct.name} product (category_id ${ct.id}) priced under $${lim}.`,
+      sql: `SELECT name, price\nFROM products\nWHERE category_id = ${ct.id}\n  AND price < ${lim};`, broken: `SELECT name, price\nFROM products\nWHERE category_id = ${ct.id}\n   OR price < ${lim};`,
+      hint: 'Both conditions must be true, so join them with AND.' };
+  } });
+  rr({ id: 'r-priciest', tier: 1, skill: 'order', rooms: ['ret:warehouse'], gen(c) {
+    const n = c.int(3, 5);
+    return { prompt: `Show the ${n} most expensive products: name and price, most expensive first.`, ordered: true,
+      sql: `SELECT name, price\nFROM products\nORDER BY price DESC\nLIMIT ${n};`, broken: `SELECT name, price\nFROM products\nORDER BY price\nLIMIT ${n};`,
+      hint: 'Most expensive first means ORDER BY price DESC.' };
+  } });
+  rr({ id: 'r-discontinued', tier: 1, skill: 'where', rooms: ['ret:warehouse'], gen() {
+    return { prompt: 'Which products are discontinued? discontinued is 1 for yes, 0 for no. Show their names.',
+      sql: 'SELECT name\nFROM products\nWHERE discontinued = 1;', broken: "SELECT name\nFROM products\nWHERE discontinued = 'yes';",
+      hint: 'The column stores the number 1, not the word yes.' };
+  } });
+  rr({ id: 'r-status-in', tier: 1, skill: 'in', rooms: ['ret:sales'], gen(c) {
+    const mo = month(c);
+    return { prompt: `List the id, order_date, and status of every order placed in ${mo.name} that was cancelled or returned.`,
+      sql: `SELECT id, order_date, status\nFROM orders\nWHERE status IN ('cancelled', 'returned')\n  AND order_date BETWEEN '${mo.start}' AND '${mo.end}';`,
+      broken: `SELECT id, order_date, status\nFROM orders\nWHERE status = 'cancelled' OR status = 'returned'\n  AND order_date BETWEEN '${mo.start}' AND '${mo.end}';`,
+      hint: 'AND runs before OR, so the date filter only applies to returns. IN (...) avoids that.' };
+  } });
+  rr({ id: 'r-unshipped', tier: 1, skill: 'null', rooms: ['ret:sales'], gen() {
+    return { prompt: "Which orders haven't shipped yet and weren't cancelled? Show id and order_date.",
+      sql: "SELECT id, order_date\nFROM orders\nWHERE ship_date IS NULL\n  AND status <> 'cancelled';", broken: "SELECT id, order_date\nFROM orders\nWHERE ship_date = NULL\n  AND status <> 'cancelled';",
+      hint: 'A missing ship_date is NULL. Use IS NULL.' };
+  } });
+  rr({ id: 'r-states', tier: 1, skill: 'distinct', rooms: ['ret:marketing'], gen() {
+    return { prompt: 'Which states do customers live in? List each state once, alphabetically.', ordered: true,
+      sql: 'SELECT DISTINCT state\nFROM customers\nORDER BY state;', broken: 'SELECT state\nFROM customers\nORDER BY state;',
+      hint: 'SELECT DISTINCT keeps one row per value.' };
+  } });
+  rr({ id: 'r-name-like', tier: 1, skill: 'like', rooms: ['ret:warehouse'], gen(c) {
+    const w = c.pick(['Mug', 'Desk', 'Lamp', 'Chair', 'Set']);
+    return { prompt: `List the name and price of every product with '${w}' anywhere in its name.`,
+      sql: `SELECT name, price\nFROM products\nWHERE name LIKE '%${w}%';`, broken: `SELECT name, price\nFROM products\nWHERE name = '${w}';`,
+      hint: `= only matches the exact text. LIKE '%${w}%' matches it anywhere.` };
+  } });
+  rr({ id: 'r-margin', tier: 1, skill: 'where', rooms: ['ret:warehouse'], gen(c) {
+    const lim = c.pick([20, 25, 30]);
+    return { prompt: `Which products make more than $${lim} per sale (price minus cost)? Show name, price, and cost.`,
+      sql: `SELECT name, price, cost\nFROM products\nWHERE price - cost > ${lim};`, broken: `SELECT name, price, cost\nFROM products\nWHERE price > ${lim};`,
+      hint: 'You can do math inside WHERE: price - cost > ...' };
+  } });
+  rr({ id: 'r-referred', tier: 1, skill: 'null', rooms: ['ret:marketing'], gen() {
+    return { prompt: 'Which customers were referred by another customer? Show name and referred_by.',
+      sql: 'SELECT name, referred_by\nFROM customers\nWHERE referred_by IS NOT NULL;', broken: 'SELECT name, referred_by\nFROM customers\nWHERE referred_by <> NULL;',
+      hint: 'Use IS NOT NULL. Any comparison with NULL using = or <> is never true.' };
+  } });
+  // ----- tier 2
+  rr({ id: 'r-month-orders', tier: 2, skill: 'date', rooms: ['ret:sales'], gen() {
+    return { prompt: 'How many orders were placed each month? Show the month as YYYY-MM and the count, in month order.', ordered: true,
+      sql: "SELECT strftime('%Y-%m', order_date) AS month, COUNT(*)\nFROM orders\nGROUP BY month\nORDER BY month;", broken: "SELECT strftime('%m', order_date) AS month, COUNT(*)\nFROM orders\nGROUP BY order_date\nORDER BY month;",
+      hint: "strftime('%Y-%m', order_date) pulls out the month. Group by that, not the full date." };
+  } });
+  rr({ id: 'r-status-counts', tier: 2, skill: 'groupby', rooms: ['ret:sales'], gen() {
+    return { prompt: 'How many orders are in each status? Show status and the count.',
+      sql: 'SELECT status, COUNT(*)\nFROM orders\nGROUP BY status;', broken: 'SELECT status, COUNT(*)\nFROM orders;',
+      hint: 'One row per status means GROUP BY status.' };
+  } });
+  rr({ id: 'r-cat-avg', tier: 2, skill: 'aggregate', rooms: ['ret:warehouse'], gen() {
+    return { prompt: 'What is the average price in each category? Show category_id and the average, rounded to 2 decimals.',
+      sql: 'SELECT category_id, ROUND(AVG(price), 2)\nFROM products\nGROUP BY category_id;', hint: 'GROUP BY category_id, then ROUND(AVG(price), 2).' };
+  } });
+  rr({ id: 'r-repeat', tier: 2, skill: 'having', rooms: ['ret:marketing'], gen(c) {
+    const k = PICK_K(c.q('SELECT COUNT(*) AS n FROM orders GROUP BY customer_id').map((x) => x.n));
+    return { prompt: `Which customer_ids have placed more than ${k} orders? Show customer_id and the number of orders.`,
+      sql: `SELECT customer_id, COUNT(*)\nFROM orders\nGROUP BY customer_id\nHAVING COUNT(*) > ${k};`, broken: `SELECT customer_id, COUNT(*)\nFROM orders\nWHERE COUNT(*) > ${k}\nGROUP BY customer_id;`,
+      hint: "WHERE can't use COUNT(). Filter groups with HAVING after GROUP BY." };
+  } });
+  rr({ id: 'r-city-clean', tier: 2, skill: 'text', rooms: ['ret:marketing'], gen() {
+    return { prompt: "City names were typed inconsistently ('chicago', 'CHICAGO', 'Chicago '). Count customers per city after cleaning: show the city in lowercase with no extra spaces, and the count.",
+      sql: 'SELECT LOWER(TRIM(city)) AS city, COUNT(*)\nFROM customers\nGROUP BY LOWER(TRIM(city));', broken: 'SELECT LOWER(TRIM(city)) AS city, COUNT(*)\nFROM customers\nGROUP BY city;',
+      headers: ['cleaned city', 'count'], grain: 'one row per city, after cleaning', hint: 'Group by the cleaned value, not the raw column, or the variants stay in separate groups.' };
+  } });
+  rr({ id: 'r-ship-days', tier: 2, skill: 'datemath', rooms: ['ret:warehouse'], gen(c) {
+    const mo = month(c);
+    return { prompt: `For every order placed in ${mo.name} that has shipped, show the order id and how many days it took to ship.`,
+      sql: `SELECT id, julianday(ship_date) - julianday(order_date) AS days\nFROM orders\nWHERE order_date LIKE '${mo.m}%'\n  AND ship_date IS NOT NULL;`,
+      broken: `SELECT id, ship_date - order_date AS days\nFROM orders\nWHERE order_date LIKE '${mo.m}%'\n  AND ship_date IS NOT NULL;`,
+      headers: ['orders.id', 'days to ship'], hint: "Dates are text, so ship_date - order_date doesn't work. Use julianday(ship_date) - julianday(order_date)." };
+  } });
+  rr({ id: 'r-avg-ship', tier: 2, skill: 'datemath', rooms: ['ret:warehouse'], gen(c) {
+    const mo = month(c);
+    return { prompt: `On average, how many days did orders placed in ${mo.name} take to ship? Only count shipped orders. Round to 1 decimal.`,
+      sql: `SELECT ROUND(AVG(julianday(ship_date) - julianday(order_date)), 1)\nFROM orders\nWHERE order_date LIKE '${mo.m}%'\n  AND ship_date IS NOT NULL;`,
+      hint: 'AVG(julianday(ship_date) - julianday(order_date)).' };
+  } });
+  rr({ id: 'r-coalesce', tier: 2, skill: 'coalesce', rooms: ['ret:sales'], gen(c) {
+    const cu = c.pick(c.q('SELECT customer_id AS id FROM orders GROUP BY customer_id HAVING SUM(ship_date IS NULL) >= 1 AND COUNT(*) >= 3'));
+    return { prompt: `Show every order from customer_id ${cu.id}: the id and the ship_date, showing 'not shipped' where there isn't one.`,
+      sql: `SELECT id, COALESCE(ship_date, 'not shipped') AS shipped\nFROM orders\nWHERE customer_id = ${cu.id};`,
+      broken: `SELECT id, COALESCE(ship_date, NULL) AS shipped\nFROM orders\nWHERE customer_id = ${cu.id};`,
+      headers: ['orders.id', "ship_date, or 'not shipped'"], hint: "COALESCE(ship_date, 'not shipped')." };
+  } });
+  rr({ id: 'r-qty-sold', tier: 2, skill: 'aggregate', rooms: ['ret:warehouse'], gen(c) {
+    const p = c.pick(c.q('SELECT p.id, p.name FROM products p WHERE EXISTS (SELECT 1 FROM order_items i WHERE i.product_id = p.id)'));
+    return { prompt: `How many units of ${p.name} (product_id ${p.id}) have been sold in total, counting every order?`,
+      sql: `SELECT SUM(quantity)\nFROM order_items\nWHERE product_id = ${p.id};`, broken: `SELECT COUNT(quantity)\nFROM order_items\nWHERE product_id = ${p.id};`,
+      hint: 'COUNT counts rows. SUM(quantity) adds up the units.' };
+  } });
+  // ----- tier 3
+  rr({ id: 'r-order-lines', tier: 3, skill: 'join', rooms: ['ret:sales'], gen(c) {
+    const o = c.pick(c.q('SELECT order_id AS id FROM order_items GROUP BY order_id HAVING COUNT(*) >= 2'));
+    return { prompt: `What's in order ${o.id}? Show each product name, quantity, and unit_price.`,
+      sql: `SELECT p.name, i.quantity, i.unit_price\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nWHERE i.order_id = ${o.id};`,
+      broken: `SELECT p.name, i.quantity, i.unit_price\nFROM order_items i\nJOIN products p ON p.id = i.id\nWHERE i.order_id = ${o.id};`,
+      hint: 'order_items.product_id points to products.id.' };
+  } });
+  rr({ id: 'r-cat-revenue', tier: 3, skill: 'join3', rooms: ['ret:finance'], gen() {
+    return { prompt: 'What is the revenue for each category name? Revenue = quantity × unit_price × (1 − discount), counting every order item. Round to 2 decimals.',
+      sql: `SELECT c.name, ROUND(SUM(i.quantity * i.unit_price * (1 - i.discount)), 2) AS revenue\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nJOIN categories c ON c.id = p.category_id\nGROUP BY c.id;`,
+      broken: `SELECT c.name, ROUND(SUM(i.quantity * i.unit_price * i.discount), 2) AS revenue\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nJOIN categories c ON c.id = p.category_id\nGROUP BY c.id;`,
+      headers: ['categories.name', 'revenue, 2 decimals'], hint: 'order_items → products → categories. Multiply by (1 - discount), not by discount.' };
+  } });
+  rr({ id: 'r-state-orders', tier: 3, skill: 'leftjoin', rooms: ['ret:marketing'], gen(c) {
+    const st = c.pick(c.q('SELECT DISTINCT state FROM customers')).state;
+    return { prompt: `For each customer in ${st}, show their name and how many orders they've placed, including customers with zero.`,
+      sql: `SELECT c.name, COUNT(o.id) AS orders\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE c.state = '${st}'\nGROUP BY c.id;`,
+      broken: `SELECT c.name, COUNT(o.id) AS orders\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE c.state = '${st}'\nGROUP BY c.id;`,
+      headers: ['customers.name', 'number of orders'], hint: 'An inner JOIN drops customers with no orders. LEFT JOIN keeps them, and COUNT(o.id) gives 0.' };
+  } });
+  rr({ id: 'r-never-ordered', tier: 3, skill: 'leftjoin', rooms: ['ret:warehouse'], gen() {
+    return { prompt: 'Which products have never been ordered? Show their names.',
+      sql: 'SELECT p.name\nFROM products p\nLEFT JOIN order_items i ON i.product_id = p.id\nWHERE i.id IS NULL;', broken: 'SELECT p.name\nFROM products p\nJOIN order_items i ON i.product_id = p.id\nWHERE i.id IS NULL;',
+      hint: 'LEFT JOIN, then keep rows where nothing matched: WHERE i.id IS NULL.' };
+  } });
+  rr({ id: 'r-referrer', tier: 3, skill: 'selfjoin', rooms: ['ret:marketing'], gen(c) {
+    const st = c.pick(c.q('SELECT DISTINCT state FROM customers WHERE referred_by IS NOT NULL')).state;
+    return { prompt: `For customers in ${st} who were referred, show the customer's name and the name of the customer who referred them.`,
+      sql: `SELECT c.name AS customer, r.name AS referrer\nFROM customers c\nJOIN customers r ON r.id = c.referred_by\nWHERE c.state = '${st}';`,
+      broken: `SELECT c.name AS customer, r.name AS referrer\nFROM customers c\nJOIN customers r ON r.referred_by = c.id\nWHERE c.state = '${st}';`,
+      headers: ['customers.name (customer)', 'customers.name (referrer)'], hint: 'Join customers to itself with two aliases. The customer row holds referred_by, which points at the referrer\'s id.' };
+  } });
+  rr({ id: 'r-top-referrers', tier: 3, skill: 'selfjoin', rooms: ['ret:marketing'], gen() {
+    return { prompt: 'Which customers referred at least 2 other customers? Show the referrer\'s name and how many people they referred.',
+      sql: 'SELECT r.name, COUNT(*) AS referrals\nFROM customers c\nJOIN customers r ON r.id = c.referred_by\nGROUP BY r.id\nHAVING COUNT(*) >= 2;',
+      broken: 'SELECT r.name, COUNT(*) AS referrals\nFROM customers c\nJOIN customers r ON r.id = c.referred_by\nGROUP BY r.id\nHAVING COUNT(*) > 2;',
+      headers: ['customers.name (referrer)', 'number referred'], grain: 'one row per referring customer', hint: 'Self-join, GROUP BY the referrer, HAVING COUNT(*) >= 2.' };
+  } });
+  rr({ id: 'r-customer-totals', tier: 3, skill: 'join', rooms: ['ret:sales'], gen(c) {
+    const cu = c.pick(c.q('SELECT customer_id AS id FROM orders GROUP BY customer_id HAVING COUNT(*) BETWEEN 3 AND 8'));
+    return { prompt: `For each order from customer_id ${cu.id}, show the order id, order_date, and order total (quantity × unit_price, ignoring discounts).`,
+      sql: `SELECT o.id, o.order_date, SUM(i.${TOTAL}) AS total\nFROM orders o\nJOIN order_items i ON i.order_id = o.id\nWHERE o.customer_id = ${cu.id}\nGROUP BY o.id;`,
+      headers: ['orders.id', 'orders.order_date', 'order total'], hint: 'Join orders to order_items and SUM per order.' };
+  } });
+  rr({ id: 'r-dupe-emails', tier: 3, skill: 'dedupe', rooms: ['ret:marketing'], gen() {
+    return { prompt: 'Some customers signed up twice with the same email typed differently. Which emails (lowercased, no extra spaces) belong to more than one customer? Show the cleaned email and how many customers use it.',
+      sql: 'SELECT LOWER(TRIM(email)) AS email, COUNT(*)\nFROM customers\nGROUP BY LOWER(TRIM(email))\nHAVING COUNT(*) > 1;', broken: 'SELECT LOWER(TRIM(email)) AS email, COUNT(*)\nFROM customers\nGROUP BY email\nHAVING COUNT(*) > 1;',
+      headers: ['cleaned email', 'number of customers'], grain: 'one row per duplicated email', hint: 'Clean first, then group by the cleaned value.' };
+  } });
+  // ----- tier 4
+  rr({ id: 'r-big-orders', tier: 4, skill: 'subquery', rooms: ['ret:finance'], gen(c) {
+    const mo = month(c);
+    return { prompt: `Which orders placed in ${mo.name} had a total above the average order total (across all orders)? Total = quantity × unit_price, no discounts. Show order_id and the total.`,
+      sql: `SELECT i.order_id, SUM(i.${TOTAL}) AS total\nFROM order_items i\nJOIN orders o ON o.id = i.order_id\nWHERE o.order_date LIKE '${mo.m}%'\nGROUP BY i.order_id\nHAVING SUM(i.${TOTAL}) > (SELECT AVG(t)\n                                     FROM (SELECT SUM(${TOTAL}) AS t\n                                           FROM order_items\n                                           GROUP BY order_id));`,
+      broken: `SELECT i.order_id, SUM(i.${TOTAL}) AS total\nFROM order_items i\nJOIN orders o ON o.id = i.order_id\nWHERE o.order_date LIKE '${mo.m}%'\nGROUP BY i.order_id\nHAVING SUM(i.${TOTAL}) > (SELECT AVG(${TOTAL}) FROM order_items);`,
+      headers: ['order_items.order_id', 'order total'], hint: 'The average of order totals needs two steps: total per order, then the average of those totals.' };
+  } });
+  rr({ id: 'r-pivot-state', tier: 4, skill: 'pivot', rooms: ['ret:finance'], gen() {
+    return { prompt: 'For each state, how many orders were delivered and how many were returned? Show state, delivered count, and returned count as three columns.',
+      sql: "SELECT c.state,\n       SUM(CASE WHEN o.status = 'delivered' THEN 1 ELSE 0 END) AS delivered,\n       SUM(CASE WHEN o.status = 'returned' THEN 1 ELSE 0 END) AS returned\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nGROUP BY c.state;",
+      headers: ['customers.state', 'delivered orders', 'returned orders'], hint: 'One SUM(CASE WHEN ... THEN 1 ELSE 0 END) per column.' };
+  } });
+  rr({ id: 'r-size-case', tier: 4, skill: 'case', rooms: ['ret:finance'], gen() {
+    return { prompt: "Label every order by its total (quantity × unit_price, no discounts): 'small' under $50, 'medium' $50 to under $200, 'large' $200 or more. Show each label and how many orders have it.",
+      sql: `SELECT CASE WHEN total < 50 THEN 'small'\n            WHEN total < 200 THEN 'medium'\n            ELSE 'large' END AS size,\n       COUNT(*)\nFROM (SELECT order_id, SUM(${TOTAL}) AS total\n      FROM order_items\n      GROUP BY order_id)\nGROUP BY size;`,
+      broken: `SELECT CASE WHEN total < 50 THEN 'small'\n            WHEN total < 200 THEN 'medium'\n            ELSE 'large' END AS size,\n       COUNT(*)\nFROM (SELECT order_id, ${TOTAL} AS total\n      FROM order_items)\nGROUP BY size;`,
+      headers: ["label ('small', 'medium', or 'large')", 'number of orders'], grain: 'one row per size label', hint: 'Total each order first (in a subquery), then label the totals.' };
+  } });
+  rr({ id: 'r-bought-cat', tier: 4, skill: 'exists', rooms: ['ret:marketing'], gen(c) {
+    const ct = cat(c), st = c.pick(c.q('SELECT DISTINCT state FROM customers')).state;
+    return { prompt: `Which customers in ${st} have bought at least one ${ct.name} product (category_id ${ct.id})? Show their names, each once.`,
+      sql: `SELECT c.name\nFROM customers c\nWHERE c.state = '${st}'\n  AND EXISTS (SELECT 1\n              FROM orders o\n              JOIN order_items i ON i.order_id = o.id\n              JOIN products p ON p.id = i.product_id\n              WHERE o.customer_id = c.id\n                AND p.category_id = ${ct.id});`,
+      broken: `SELECT c.name\nFROM customers c\nWHERE c.state = '${st}'\n  AND EXISTS (SELECT 1\n              FROM orders o\n              JOIN order_items i ON i.order_id = o.id\n              JOIN products p ON p.id = i.product_id\n              WHERE p.category_id = ${ct.id});`,
+      hint: 'Tie the subquery to the outer customer: o.customer_id = c.id.' };
+  } });
+  rr({ id: 'r-never-cancelled', tier: 4, skill: 'exists', rooms: ['ret:sales'], gen(c) {
+    const st = c.pick(c.q('SELECT DISTINCT state FROM customers')).state;
+    return { prompt: `Which customers in ${st} have placed at least one order but never had an order cancelled? Show their names.`,
+      sql: `SELECT c.name\nFROM customers c\nWHERE c.state = '${st}'\n  AND EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id)\n  AND NOT EXISTS (SELECT 1 FROM orders o\n                  WHERE o.customer_id = c.id AND o.status = 'cancelled');`,
+      broken: `SELECT DISTINCT c.name\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE c.state = '${st}'\n  AND o.status <> 'cancelled';`,
+      hint: 'Two separate questions about related rows: one EXISTS (has orders) and one NOT EXISTS (has a cancelled order).' };
+  } });
+  rr({ id: 'r-union-ids', tier: 4, skill: 'union', rooms: ['ret:sales'], gen(c) {
+    const mo = month(c);
+    return { prompt: `Make one list of order ids from ${mo.name} that need review: orders that were cancelled, plus orders containing a discontinued product. Each id once.`,
+      sql: `SELECT id\nFROM orders\nWHERE status = 'cancelled' AND order_date LIKE '${mo.m}%'\nUNION\nSELECT i.order_id\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nJOIN orders o ON o.id = i.order_id\nWHERE p.discontinued = 1 AND o.order_date LIKE '${mo.m}%';`,
+      broken: `SELECT id\nFROM orders\nWHERE status = 'cancelled' AND order_date LIKE '${mo.m}%'\nUNION ALL\nSELECT i.order_id\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nJOIN orders o ON o.id = i.order_id\nWHERE p.discontinued = 1 AND o.order_date LIKE '${mo.m}%';`,
+      headers: ['order id'], grain: 'one row per order', hint: 'UNION combines two lists and removes duplicates. UNION ALL keeps duplicates.' };
+  } });
+  rr({ id: 'r-margin-cat', tier: 4, skill: 'compare', rooms: ['ret:finance'], gen(c) {
+    const ct = cat(c);
+    return { prompt: `Which ${ct.name} products (category_id ${ct.id}) have a bigger margin (price − cost) than the average margin in their category? Show name and margin, rounded to 2 decimals.`,
+      sql: `SELECT name, ROUND(price - cost, 2) AS margin\nFROM products\nWHERE category_id = ${ct.id}\n  AND price - cost > (SELECT AVG(price - cost)\n                      FROM products\n                      WHERE category_id = ${ct.id});`,
+      broken: `SELECT name, ROUND(price - cost, 2) AS margin\nFROM products\nWHERE category_id = ${ct.id}\n  AND price - cost > (SELECT AVG(price - cost) FROM products);`,
+      headers: ['products.name', 'margin, 2 decimals'], hint: 'The average in the subquery must be for the same category.' };
+  } });
+  // ----- tier 5
+  rr({ id: 'r-best-seller', tier: 5, skill: 'window', rooms: ['ret:finance'], gen() {
+    return { prompt: 'What is the best-selling product in each category by units sold? Show category name, product name, and units. Break ties by product name, alphabetically first.',
+      sql: 'SELECT cat, product, units\nFROM (SELECT c.name AS cat, p.name AS product, SUM(i.quantity) AS units,\n             ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY SUM(i.quantity) DESC, p.name) AS rn\n      FROM order_items i\n      JOIN products p ON p.id = i.product_id\n      JOIN categories c ON c.id = p.category_id\n      GROUP BY p.id)\nWHERE rn = 1;',
+      headers: ['categories.name', 'products.name', 'units sold'], grain: 'one row per category', hint: 'Total units per product, number them within each category with ROW_NUMBER() OVER (PARTITION BY category ...), keep row 1.' };
+  } });
+  rr({ id: 'r-running-rev', tier: 5, skill: 'window', rooms: ['ret:finance'], gen() {
+    return { prompt: "Show monthly revenue (quantity × unit_price × (1 − discount)) for orders that weren't cancelled, with a running total through the year. Columns: month (YYYY-MM), revenue rounded to 2 decimals, running total rounded to 2 decimals. Month order.", ordered: true,
+      sql: "SELECT strftime('%Y-%m', o.order_date) AS month,\n       ROUND(SUM(i.quantity * i.unit_price * (1 - i.discount)), 2) AS revenue,\n       ROUND(SUM(SUM(i.quantity * i.unit_price * (1 - i.discount))) OVER (ORDER BY strftime('%Y-%m', o.order_date)), 2) AS running\nFROM orders o\nJOIN order_items i ON i.order_id = o.id\nWHERE o.status <> 'cancelled'\nGROUP BY month\nORDER BY month;",
+      headers: ['month (YYYY-MM)', 'revenue, 2 decimals', 'running total, 2 decimals'], hint: 'GROUP BY month, then SUM(SUM(...)) OVER (ORDER BY month) for the running total.' };
+  } });
+  rr({ id: 'r-days-between', tier: 5, skill: 'window', rooms: ['ret:sales'], gen(c) {
+    const cu = c.pick(c.q('SELECT customer_id AS id FROM orders GROUP BY customer_id HAVING COUNT(DISTINCT order_date) >= 3 AND COUNT(*) = COUNT(DISTINCT order_date)'));
+    return { prompt: `For customer_id ${cu.id}, show each order_date and the number of days since their previous order (empty for the first), in date order.`, ordered: true,
+      sql: `SELECT order_date,\n       julianday(order_date) - julianday(LAG(order_date) OVER (ORDER BY order_date)) AS days_since\nFROM orders\nWHERE customer_id = ${cu.id}\nORDER BY order_date;`,
+      headers: ['orders.order_date', 'days since previous order'], hint: 'LAG(order_date) OVER (ORDER BY order_date) gives the previous date. Subtract with julianday().' };
+  } });
+  rr({ id: 'r-vip', tier: 5, skill: 'cte', rooms: ['ret:marketing'], gen(c) {
+    const spends = c.q(`SELECT o.customer_id, SUM(i.${TOTAL}) AS s FROM orders o JOIN order_items i ON i.order_id = o.id GROUP BY o.customer_id`).map((x) => x.s);
+    const avg = spends.reduce((a, b) => a + b, 0) / spends.length;
+    const f = [2, 1.75, 1.5].find((k) => { const n = spends.filter((s) => s > k * avg).length; return n >= 1 && n <= 8; }) || 1.5;
+    return { prompt: `Find the big spenders: customers whose total spend (quantity × unit_price across all their orders, no discounts) is more than ${f} times the average customer's total spend. Show name and total spend.`,
+      sql: `WITH spend AS (\n  SELECT o.customer_id, SUM(i.${TOTAL}) AS total\n  FROM orders o\n  JOIN order_items i ON i.order_id = o.id\n  GROUP BY o.customer_id\n)\nSELECT c.name, spend.total\nFROM spend\nJOIN customers c ON c.id = spend.customer_id\nWHERE spend.total > ${f} * (SELECT AVG(total) FROM spend);`,
+      broken: `WITH spend AS (\n  SELECT o.customer_id, SUM(i.${TOTAL}) AS total\n  FROM orders o\n  JOIN order_items i ON i.order_id = o.id\n  GROUP BY o.customer_id\n)\nSELECT c.name, spend.total\nFROM spend\nJOIN customers c ON c.id = spend.customer_id\nWHERE spend.total > ${f} * (SELECT AVG(${TOTAL}) FROM order_items);`,
+      headers: ['customers.name', 'total spend'], grain: 'one row per customer', hint: 'Total per customer in a CTE, then compare each total to the average of those totals.' };
+  } });
+  rr({ id: 'r-dedupe-keep', tier: 5, skill: 'dedupe', rooms: ['ret:marketing'], gen() {
+    return { prompt: 'Clean up duplicate customer accounts: list the ids to delete. Two accounts are duplicates when their emails match after lowercasing and trimming. Keep the lowest id in each group.',
+      sql: 'SELECT id\nFROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY LOWER(TRIM(email)) ORDER BY id) AS rn\n      FROM customers)\nWHERE rn > 1;',
+      broken: 'SELECT id\nFROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) AS rn\n      FROM customers)\nWHERE rn > 1;',
+      headers: ['customers.id'], grain: 'one row per extra account', hint: 'Partition by the CLEANED email. NOT IN (SELECT MIN(id) ... GROUP BY LOWER(TRIM(email))) also works.' };
+  } });
+  rr({ id: 'r-share', tier: 5, skill: 'window', rooms: ['ret:finance'], gen() {
+    return { prompt: "What share of total units sold does each category account for? Show category name, units sold, and its percent of all units, rounded to 1 decimal.",
+      sql: 'SELECT c.name, SUM(i.quantity) AS units,\n       ROUND(100.0 * SUM(i.quantity) / SUM(SUM(i.quantity)) OVER (), 1) AS pct\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nJOIN categories c ON c.id = p.category_id\nGROUP BY c.id;',
+      broken: 'SELECT c.name, SUM(i.quantity) AS units,\n       ROUND(100 * SUM(i.quantity) / SUM(SUM(i.quantity)) OVER (), 1) AS pct\nFROM order_items i\nJOIN products p ON p.id = i.product_id\nJOIN categories c ON c.id = p.category_id\nGROUP BY c.id;',
+      headers: ['categories.name', 'units sold', 'percent of all units, 1 decimal'], hint: 'SUM(SUM(quantity)) OVER () is the grand total. Use 100.0 so the division keeps decimals.' };
+  } });
+  // ----- predict
+  rr({ id: 'p-r-sum', tier: 2, skill: 'aggregate', predict: true, rooms: ['ret:sales'], gen(c) {
+    const o = c.pick(c.q('SELECT order_id AS id FROM order_items GROUP BY order_id HAVING COUNT(*) BETWEEN 2 AND 4'));
+    return { sampleSql: `SELECT id, order_id, product_id, quantity, unit_price FROM order_items WHERE order_id = ${o.id}`,
+      query: 'SELECT SUM(quantity * unit_price)\nFROM sample;', prompt: 'What number does this query return?', hint: 'Multiply each row first, then add the results.' };
+  } });
+  rr({ id: 'p-r-count', tier: 1, skill: 'null', predict: true, rooms: ['ret:sales'], gen(c) {
+    const cu = c.pick(c.q('SELECT customer_id AS id FROM orders GROUP BY customer_id HAVING COUNT(*) BETWEEN 3 AND 7 AND SUM(ship_date IS NULL) >= 1'));
+    return { sampleSql: `SELECT id, order_date, status, ship_date FROM orders WHERE customer_id = ${cu.id}`,
+      query: 'SELECT COUNT(ship_date)\nFROM sample;', prompt: 'What number does this query return?', hint: 'COUNT(column) skips NULLs.' };
+  } });
+  rr({ id: 'p-r-case', tier: 4, skill: 'case', predict: true, rooms: ['ret:sales'], gen(c) {
+    const cu = c.pick(c.q("SELECT customer_id AS id FROM orders GROUP BY customer_id HAVING COUNT(*) BETWEEN 3 AND 7 AND SUM(status = 'delivered') >= 1"));
+    return { sampleSql: `SELECT id, order_date, status FROM orders WHERE customer_id = ${cu.id}`,
+      query: "SELECT SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END)\nFROM sample;", prompt: 'What number does this query return?', hint: 'Each delivered row adds 1, every other row adds 0.' };
+  } });
+
+  E.registerContext({
+    id: 'retail', name: 'Retail store', short: 'Retail', blurb: 'Orders, line items, and products. Money math and messy customer data.',
+    schema: R_SCHEMA, generate: rGenerate, templates: R,
+    notes: {
+      categories: 'Product categories.',
+      products: 'Catalog. price and cost in dollars. discontinued is 1 or 0.',
+      customers: 'Customers. referred_by points to another customer\'s id. Emails and cities were typed inconsistently, and a few people signed up twice.',
+      orders: 'Orders in 2026. status: pending, shipped, delivered, cancelled, returned. ship_date is empty until shipped.',
+      order_items: 'One row per product in an order. discount is a fraction: 0.1 = 10% off.',
+    },
+    tableOrder: ['orders', 'order_items', 'products', 'customers', 'categories'],
+    singular: { categories: 'category', products: 'product', customers: 'customer', orders: 'order', order_items: 'order item', state: 'state', status: 'status' },
+    areas: [
+      { key: 'ret:sales', label: 'Sales desk', color: '--ct', tier: 1, roles: ['sales lead', 'customer service rep'] },
+      { key: 'ret:warehouse', label: 'Warehouse', color: '--fluoro', tier: 1, roles: ['warehouse manager', 'inventory planner'] },
+      { key: 'ret:marketing', label: 'Marketing', color: '--mammo', tier: 1, roles: ['marketing analyst', 'growth manager'] },
+      { key: 'ret:finance', label: 'Finance', color: '--dept', tier: 3, roles: ['finance director', 'controller'] },
+    ],
+  });
+
+  // ======================================================================
+  // Company HR
+  // ======================================================================
+  const H_SCHEMA = `
+CREATE TABLE departments (id INTEGER PRIMARY KEY, name TEXT, location TEXT);
+CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT, email TEXT, department_id INTEGER, manager_id INTEGER, job_title TEXT, hire_date TEXT, termination_date TEXT, salary INTEGER);
+CREATE TABLE projects (id INTEGER PRIMARY KEY, name TEXT, department_id INTEGER, start_date TEXT, end_date TEXT, budget INTEGER);
+CREATE TABLE assignments (id INTEGER PRIMARY KEY, employee_id INTEGER, project_id INTEGER, role TEXT, hours INTEGER);
+CREATE TABLE reviews (id INTEGER PRIMARY KEY, employee_id INTEGER, review_year INTEGER, rating INTEGER, reviewer_id INTEGER);`;
+  const H_DEPTS = [
+    ['Executive', 'New York', [], 'Chief Executive Officer'],
+    ['Engineering', 'Austin', [['Software Engineer', 105], ['Senior Software Engineer', 140], ['QA Engineer', 88], ['Data Engineer', 118]], 'VP of Engineering'],
+    ['Sales', 'Chicago', [['Account Executive', 82], ['Sales Associate', 58], ['Sales Engineer', 110]], 'VP of Sales'],
+    ['Marketing', 'Chicago', [['Marketing Specialist', 68], ['Content Writer', 60], ['Marketing Analyst', 76]], 'VP of Marketing'],
+    ['Finance', 'New York', [['Accountant', 72], ['Financial Analyst', 85]], 'VP of Finance'],
+    ['People', 'Austin', [['Recruiter', 64], ['HR Generalist', 66]], 'VP of People'],
+    ['Support', 'Denver', [['Support Specialist', 52], ['Support Engineer', 74]], 'VP of Support'],
+  ];
+  const H_MGR = { Engineering: 'Engineering Manager', Sales: 'Sales Manager', Marketing: 'Marketing Manager', Finance: 'Finance Manager', People: 'People Manager', Support: 'Support Manager' };
+
+  function hGenerate(SQL, seed) {
+    const r = mulberry32(seed), h = helpers(r), name = namer(r, h);
+    const db = new SQL.Database(); db.run(H_SCHEMA);
+    insertAll(db, 'departments', ['id', 'name', 'location'], H_DEPTS.map((d, i) => [i + 1, d[0], d[1]]));
+    const emp = [];
+    const sal = (k) => Math.round(k * 1000 * (0.85 + r() * 0.3) / 1000) * 1000;
+    const add = (dept, mgr, title, k, hired) => { const nm = name(); const row = { id: emp.length + 1, name: nm, email: messyEmail(r, nm, 'company.example.com'), dept, mgr, title, hire: hired || ymd(h.int(2012, 2026), h.int(1, 12), h.int(1, 28)), term: null, salary: sal(k) }; if (row.hire > '2026-10-31') row.hire = '2026-10-15'; emp.push(row); return row; };
+    const ceo = add(1, null, 'Chief Executive Officer', 260, ymd(2011, h.int(1, 12), h.int(1, 28)));
+    H_DEPTS.forEach((d, di) => {
+      if (di === 0) return;
+      const vp = add(di + 1, ceo.id, d[3], 190, ymd(h.int(2012, 2019), h.int(1, 12), h.int(1, 28)));
+      const nm = h.int(1, 2), mgrs = [];
+      for (let k = 0; k < nm; k++) mgrs.push(add(di + 1, vp.id, H_MGR[d[0]], 135));
+      const n = h.int(5, 9);
+      for (let k = 0; k < n; k++) { const [t, base] = h.pick(d[2]); add(di + 1, h.pick(mgrs).id, t, base); }
+    });
+    emp.forEach((e) => { if (e.id > 1 && e.title.indexOf('VP') !== 0 && r() < 0.12) { const t = addDays(e.hire, h.int(200, 1500)); if (t < '2026-11-01') e.term = t; } });
+    const ics = emp.filter((e) => e.mgr && !/Manager|VP|Chief/.test(e.title) && !e.term);
+    h.shuffle(ics).slice(0, h.int(2, 3)).forEach((e) => { const m = emp[e.mgr - 1]; e.salary = m.salary + h.int(1, 12) * 1000; });
+    insertAll(db, 'employees', ['id', 'name', 'email', 'department_id', 'manager_id', 'job_title', 'hire_date', 'termination_date', 'salary'], emp.map((e) => [e.id, e.name, e.email, e.dept, e.mgr, e.title, e.hire, e.term, e.salary]));
+    const PN = h.shuffle(['Atlas', 'Beacon', 'Cobalt', 'Delta', 'Ember', 'Falcon', 'Granite', 'Harbor', 'Indigo', 'Juniper', 'Keystone']).slice(0, 10);
+    const projects = PN.map((p, i) => { const st = ymd(h.int(2024, 2026), h.int(1, 12), h.int(1, 28)); const done = r() < 0.55 && st < '2026-06-01'; return [i + 1, `Project ${p}`, h.int(2, H_DEPTS.length), st > '2026-10-31' ? '2026-09-01' : st, done ? addDays(st > '2026-10-31' ? '2026-09-01' : st, h.int(60, 400)) : null, h.int(4, 60) * 5000]; });
+    projects.forEach((p) => { if (p[4] && p[4] > '2026-11-01') p[4] = null; });
+    insertAll(db, 'projects', ['id', 'name', 'department_id', 'start_date', 'end_date', 'budget'], projects);
+    const asg = [];
+    emp.filter((e) => !e.term && e.id > 1).forEach((e) => {
+      const k = wpick(r, [[0, 2], [1, 4], [2, 3], [3, 1]]), taken = new Set();
+      for (let i = 0; i < k; i++) {
+        const own = projects.filter((p) => p[2] === e.dept), pool = (r() < 0.7 && own.length ? own : projects).filter((p) => !taken.has(p[0]));
+        if (!pool.length) continue;
+        const p = h.pick(pool); taken.add(p[0]);
+        asg.push([e.id, p[0], wpick(r, [['Contributor', 6], ['Lead', 1], ['Reviewer', 2]]), h.int(2, 80) * 5]);
+      }
+    });
+    h.shuffle(asg.map((_, i) => i)).slice(0, h.int(3, 4)).forEach((i) => asg.push(asg[i].slice()));
+    insertAll(db, 'assignments', ['id', 'employee_id', 'project_id', 'role', 'hours'], asg.map((a, i) => [i + 1, ...a]));
+    const rev = [];
+    [2024, 2025].forEach((y) => emp.forEach((e) => {
+      if (!e.mgr || e.hire > `${y}-06-30` || (e.term && e.term < `${y}-12-31`) || r() < 0.1) return;
+      rev.push([e.id, y, wpick(r, [[1, 1], [2, 2], [3, 6], [4, 6], [5, 3]]), e.mgr]);
+    }));
+    insertAll(db, 'reviews', ['id', 'employee_id', 'review_year', 'rating', 'reviewer_id'], rev.map((x, i) => [i + 1, ...x]));
+    const bytes = db.export(); db.close(); return bytes;
+  }
+
+  const H = [];
+  const hh = (o) => H.push(o);
+  const hdep = (c) => c.pick(c.q('SELECT id, name, location FROM departments WHERE id > 1'));
+  // ----- tier 1
+  hh({ id: 'h-dept-list', tier: 1, skill: 'where', rooms: ['hr:people'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `List the name and job_title of everyone in ${d.name} (department_id ${d.id}), including people who have left.`,
+      sql: `SELECT name, job_title\nFROM employees\nWHERE department_id = ${d.id};`, broken: `SELECT name, job_title\nFROM employees\nWHERE id = ${d.id};`,
+      hint: 'employees.id is the person. Filter on department_id.' };
+  } });
+  hh({ id: 'h-top-paid', tier: 1, skill: 'order', rooms: ['hr:payroll'], gen(c) {
+    const n = c.int(3, 5);
+    return { prompt: `Show the ${n} highest salaries in the company: name and salary, highest first. Include everyone, current or not.`, ordered: true,
+      sql: `SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT ${n};`, broken: `SELECT name, salary\nFROM employees\nORDER BY salary\nLIMIT ${n};`,
+      hint: 'Highest first means ORDER BY salary DESC.' };
+  } });
+  hh({ id: 'h-active-dept', tier: 1, skill: 'null', rooms: ['hr:people'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `Who currently works in ${d.name} (department_id ${d.id})? Current employees have no termination_date. Show their names.`,
+      sql: `SELECT name\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL;`, broken: `SELECT name\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date = NULL;`,
+      hint: 'Use IS NULL, never = NULL.' };
+  } });
+  hh({ id: 'h-left', tier: 1, skill: 'null', rooms: ['hr:people'], gen() {
+    return { prompt: 'Who has left the company? Show name and termination_date, most recent departure first.', ordered: true,
+      sql: 'SELECT name, termination_date\nFROM employees\nWHERE termination_date IS NOT NULL\nORDER BY termination_date DESC;', broken: 'SELECT name, termination_date\nFROM employees\nWHERE termination_date IS NOT NULL\nORDER BY termination_date;',
+      hint: 'IS NOT NULL keeps people with a termination date. Most recent first is DESC.' };
+  } });
+  hh({ id: 'h-titles', tier: 1, skill: 'distinct', rooms: ['hr:people'], gen() {
+    return { prompt: 'List every job title in the company once, alphabetically.', ordered: true,
+      sql: 'SELECT DISTINCT job_title\nFROM employees\nORDER BY job_title;', broken: 'SELECT job_title\nFROM employees\nORDER BY job_title;',
+      hint: 'SELECT DISTINCT removes repeats.' };
+  } });
+  hh({ id: 'h-title-like', tier: 1, skill: 'like', rooms: ['hr:people'], gen(c) {
+    const w = c.pick(['Engineer', 'Manager', 'Analyst', 'Specialist']);
+    return { prompt: `List the name and job_title of everyone whose title contains '${w}'.`,
+      sql: `SELECT name, job_title\nFROM employees\nWHERE job_title LIKE '%${w}%';`, broken: `SELECT name, job_title\nFROM employees\nWHERE job_title LIKE '${w}%';`,
+      hint: `'${w}%' only matches titles that start with ${w}. Use '%${w}%' for anywhere.` };
+  } });
+  hh({ id: 'h-two-depts', tier: 1, skill: 'in', rooms: ['hr:payroll'], gen(c) {
+    const ds = c.shuffle(c.q('SELECT id, name FROM departments WHERE id > 1')).slice(0, 2).sort((a, b) => a.id - b.id);
+    const lim = c.pick([70000, 80000, 90000]);
+    return { prompt: `List the name and salary of everyone in ${ds[0].name} or ${ds[1].name} (department_id ${ds[0].id} or ${ds[1].id}) earning more than ${lim}.`,
+      sql: `SELECT name, salary\nFROM employees\nWHERE department_id IN (${ds[0].id}, ${ds[1].id})\n  AND salary > ${lim};`,
+      broken: `SELECT name, salary\nFROM employees\nWHERE department_id = ${ds[0].id} OR department_id = ${ds[1].id}\n  AND salary > ${lim};`,
+      hint: 'AND binds tighter than OR, so the salary filter only hits the second department. Use IN or parentheses.' };
+  } });
+  hh({ id: 'h-open-projects', tier: 1, skill: 'null', rooms: ['hr:projects'], gen() {
+    return { prompt: 'Which projects are still running (no end_date)? Show name and start_date.',
+      sql: 'SELECT name, start_date\nFROM projects\nWHERE end_date IS NULL;', broken: "SELECT name, start_date\nFROM projects\nWHERE end_date = '';",
+      hint: 'A missing end date is NULL, not an empty string.' };
+  } });
+  hh({ id: 'h-big-budget', tier: 1, skill: 'order', rooms: ['hr:projects'], gen(c) {
+    const n = c.int(3, 4);
+    return { prompt: `Show the ${n} projects with the biggest budgets: name and budget, largest first.`, ordered: true,
+      sql: `SELECT name, budget\nFROM projects\nORDER BY budget DESC\nLIMIT ${n};`, hint: 'ORDER BY budget DESC, then LIMIT.' };
+  } });
+  // ----- tier 2
+  hh({ id: 'h-headcount', tier: 2, skill: 'groupby', rooms: ['hr:people'], gen() {
+    return { prompt: 'What is the current headcount of each department? Show department_id and the number of current employees.',
+      sql: 'SELECT department_id, COUNT(*)\nFROM employees\nWHERE termination_date IS NULL\nGROUP BY department_id;', broken: 'SELECT department_id, COUNT(*)\nFROM employees\nGROUP BY department_id;',
+      hint: 'Filter to current employees with WHERE, then GROUP BY department_id.' };
+  } });
+  hh({ id: 'h-avg-title', tier: 2, skill: 'aggregate', rooms: ['hr:payroll'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `What is the average salary for each job title in ${d.name} (department_id ${d.id})? Show job_title and the average, rounded to the nearest dollar.`,
+      sql: `SELECT job_title, ROUND(AVG(salary))\nFROM employees\nWHERE department_id = ${d.id}\nGROUP BY job_title;`, hint: 'GROUP BY job_title, then ROUND(AVG(salary)).' };
+  } });
+  hh({ id: 'h-span', tier: 2, skill: 'having', rooms: ['hr:people'], gen(c) {
+    const k = PICK_K(c.q('SELECT COUNT(*) AS n FROM employees WHERE manager_id IS NOT NULL GROUP BY manager_id').map((x) => x.n));
+    return { prompt: `Which manager_ids have more than ${k} direct reports (current or not)? Show manager_id and the count.`,
+      sql: `SELECT manager_id, COUNT(*)\nFROM employees\nWHERE manager_id IS NOT NULL\nGROUP BY manager_id\nHAVING COUNT(*) > ${k};`, broken: `SELECT manager_id, COUNT(*)\nFROM employees\nWHERE manager_id IS NOT NULL\nGROUP BY manager_id\nHAVING manager_id > ${k};`,
+      hint: 'HAVING should test the count, not the manager_id.' };
+  } });
+  hh({ id: 'h-hires-year', tier: 2, skill: 'date', rooms: ['hr:people'], gen() {
+    return { prompt: 'How many people were hired each year from 2020 on? Show the year (YYYY) and count, in year order.', ordered: true,
+      sql: "SELECT strftime('%Y', hire_date) AS year, COUNT(*)\nFROM employees\nWHERE hire_date >= '2020-01-01'\nGROUP BY year\nORDER BY year;",
+      broken: "SELECT strftime('%Y', hire_date) AS year, COUNT(*)\nFROM employees\nWHERE hire_date >= '2020'\nGROUP BY hire_date\nORDER BY year;",
+      headers: ['year (YYYY)', 'count'], hint: "strftime('%Y', hire_date) gets the year. Group by that, not the full date." };
+  } });
+  hh({ id: 'h-tenure', tier: 2, skill: 'datemath', rooms: ['hr:people'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `For each current employee in ${d.name} (department_id ${d.id}), show name and full years of service as of ${NOW}. Count a year as 365.25 days and round down.`,
+      sql: `SELECT name,\n       CAST((julianday('${NOW}') - julianday(hire_date)) / 365.25 AS INTEGER) AS years\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL;`,
+      headers: ['employees.name', 'full years of service'], hint: "(julianday('2026-11-11') - julianday(hire_date)) / 365.25, then CAST(... AS INTEGER)." };
+  } });
+  hh({ id: 'h-project-days', tier: 2, skill: 'datemath', rooms: ['hr:projects'], gen() {
+    return { prompt: 'How long did each finished project take? Show name and the number of days from start_date to end_date.',
+      sql: 'SELECT name, julianday(end_date) - julianday(start_date) AS days\nFROM projects\nWHERE end_date IS NOT NULL;', broken: 'SELECT name, end_date - start_date AS days\nFROM projects\nWHERE end_date IS NOT NULL;',
+      headers: ['projects.name', 'days'], hint: 'Dates are text. Subtract julianday() values instead.' };
+  } });
+  hh({ id: 'h-coalesce', tier: 2, skill: 'coalesce', rooms: ['hr:people'], gen(c) {
+    const d = c.pick(c.q('SELECT DISTINCT d.id, d.name FROM departments d JOIN employees e ON e.department_id = d.id WHERE e.termination_date IS NOT NULL'));
+    return { prompt: `List everyone who has worked in ${d.name} (department_id ${d.id}) with their name and termination_date, showing 'current' for people who haven't left.`,
+      sql: `SELECT name, COALESCE(termination_date, 'current') AS status\nFROM employees\nWHERE department_id = ${d.id};`, broken: `SELECT name, COALESCE('current', termination_date) AS status\nFROM employees\nWHERE department_id = ${d.id};`,
+      headers: ['employees.name', "termination_date, or 'current'"], hint: "COALESCE returns the FIRST non-NULL argument, so the column goes first: COALESCE(termination_date, 'current')." };
+  } });
+  hh({ id: 'h-email-case', tier: 2, skill: 'text', rooms: ['hr:people'], gen() {
+    return { prompt: "Company emails should be all lowercase with no spaces. Whose email breaks that rule? Show name and email.",
+      sql: 'SELECT name, email\nFROM employees\nWHERE email <> LOWER(TRIM(email));', broken: 'SELECT name, email\nFROM employees\nWHERE email = UPPER(email);',
+      hint: 'Compare the email to its cleaned version: email <> LOWER(TRIM(email)).' };
+  } });
+  hh({ id: 'h-payroll', tier: 2, skill: 'aggregate', rooms: ['hr:payroll'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `What is the total yearly salary of current employees in ${d.name} (department_id ${d.id})?`,
+      sql: `SELECT SUM(salary)\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL;`, broken: `SELECT SUM(salary)\nFROM employees\nWHERE department_id = ${d.id};`,
+      hint: 'SUM(salary), counting only current employees.' };
+  } });
+  // ----- tier 3
+  hh({ id: 'h-manager', tier: 3, skill: 'selfjoin', rooms: ['hr:people'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `For each current employee in ${d.name} (department_id ${d.id}), show their name and their manager's name.`,
+      sql: `SELECT e.name AS employee, m.name AS manager\nFROM employees e\nJOIN employees m ON m.id = e.manager_id\nWHERE e.department_id = ${d.id}\n  AND e.termination_date IS NULL;`,
+      broken: `SELECT e.name AS employee, m.name AS manager\nFROM employees e\nJOIN employees m ON m.manager_id = e.id\nWHERE e.department_id = ${d.id}\n  AND e.termination_date IS NULL;`,
+      headers: ['employees.name (employee)', 'employees.name (manager)'], hint: "Join employees to itself. The employee's manager_id points to the manager's id." };
+  } });
+  hh({ id: 'h-location', tier: 3, skill: 'join', rooms: ['hr:people'], gen(c) {
+    const loc = c.pick(c.q('SELECT DISTINCT location FROM departments')).location;
+    return { prompt: `Who currently works out of ${loc}? Show the employee's name and department name.`,
+      sql: `SELECT e.name, d.name\nFROM employees e\nJOIN departments d ON d.id = e.department_id\nWHERE d.location = '${loc}'\n  AND e.termination_date IS NULL;`,
+      headers: ['employees.name', 'departments.name'], hint: 'location is on departments. Join employees.department_id to departments.id.' };
+  } });
+  hh({ id: 'h-team', tier: 3, skill: 'join3', rooms: ['hr:projects'], gen(c) {
+    const p = c.pick(c.q('SELECT p.name FROM projects p WHERE (SELECT COUNT(*) FROM assignments a WHERE a.project_id = p.id) BETWEEN 2 AND 12'));
+    return { prompt: `Who is assigned to ${p.name}? Show each person's name, role, and hours.`,
+      sql: `SELECT e.name, a.role, a.hours\nFROM assignments a\nJOIN employees e ON e.id = a.employee_id\nJOIN projects p ON p.id = a.project_id\nWHERE p.name = '${p.name}';`,
+      broken: `SELECT e.name, a.role, a.hours\nFROM assignments a\nJOIN employees e ON e.id = a.project_id\nJOIN projects p ON p.id = a.project_id\nWHERE p.name = '${p.name}';`,
+      hint: 'assignments is the bridge: employee_id → employees, project_id → projects.' };
+  } });
+  hh({ id: 'h-unassigned', tier: 3, skill: 'leftjoin', rooms: ['hr:projects'], gen() {
+    return { prompt: 'Which current employees are not assigned to any project? Show their names.',
+      sql: 'SELECT e.name\nFROM employees e\nLEFT JOIN assignments a ON a.employee_id = e.id\nWHERE a.id IS NULL\n  AND e.termination_date IS NULL;',
+      broken: 'SELECT e.name\nFROM employees e\nJOIN assignments a ON a.employee_id = e.id\nWHERE a.id IS NULL\n  AND e.termination_date IS NULL;',
+      hint: 'LEFT JOIN keeps people with no assignments; then keep the rows where a.id IS NULL.' };
+  } });
+  hh({ id: 'h-project-hours', tier: 3, skill: 'join', rooms: ['hr:projects'], gen() {
+    return { prompt: 'How many hours have been logged on each project? Show project name and total hours, for projects with any assignments.',
+      sql: 'SELECT p.name, SUM(a.hours) AS hours\nFROM assignments a\nJOIN projects p ON p.id = a.project_id\nGROUP BY p.id;', broken: 'SELECT p.name, COUNT(a.hours) AS hours\nFROM assignments a\nJOIN projects p ON p.id = a.project_id\nGROUP BY p.id;',
+      headers: ['projects.name', 'total hours'], hint: 'SUM adds hours; COUNT only counts rows.' };
+  } });
+  hh({ id: 'h-reports', tier: 3, skill: 'selfjoin', rooms: ['hr:exec'], gen() {
+    return { prompt: 'Show each manager\'s name and how many current direct reports they have, for managers with at least 3.',
+      sql: 'SELECT m.name, COUNT(*) AS reports\nFROM employees e\nJOIN employees m ON m.id = e.manager_id\nWHERE e.termination_date IS NULL\nGROUP BY m.id\nHAVING COUNT(*) >= 3;',
+      headers: ['employees.name (manager)', 'number of direct reports'], grain: 'one row per manager', hint: 'Self-join employees to their managers, GROUP BY the manager, HAVING COUNT(*) >= 3.' };
+  } });
+  hh({ id: 'h-dupe-assign', tier: 3, skill: 'dedupe', rooms: ['hr:projects'], gen() {
+    return { prompt: 'Some assignments were logged twice. Which employee_id and project_id pairs appear more than once, and how many times?',
+      sql: 'SELECT employee_id, project_id, COUNT(*)\nFROM assignments\nGROUP BY employee_id, project_id\nHAVING COUNT(*) > 1;', broken: 'SELECT employee_id, project_id, COUNT(*)\nFROM assignments\nGROUP BY employee_id\nHAVING COUNT(*) > 1;',
+      grain: 'one row per duplicated employee + project pair', hint: 'Group by both columns that define "the same assignment".' };
+  } });
+  hh({ id: 'h-reviewer', tier: 3, skill: 'selfjoin', rooms: ['hr:exec'], gen(c) {
+    const d = hdep(c), y = c.pick([2024, 2025]);
+    return { prompt: `For ${y} reviews of people in ${d.name} (department_id ${d.id}), show the employee's name, the rating, and the reviewer's name.`,
+      sql: `SELECT e.name AS employee, r.rating, x.name AS reviewer\nFROM reviews r\nJOIN employees e ON e.id = r.employee_id\nJOIN employees x ON x.id = r.reviewer_id\nWHERE r.review_year = ${y}\n  AND e.department_id = ${d.id};`,
+      headers: ['employees.name (employee)', 'reviews.rating', 'employees.name (reviewer)'], hint: 'Join employees twice with different aliases: once for employee_id, once for reviewer_id.' };
+  } });
+  // ----- tier 4
+  hh({ id: 'h-above-dept', tier: 4, skill: 'subquery', rooms: ['hr:payroll'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `Which current employees in ${d.name} (department_id ${d.id}) earn more than the average salary of current employees in that department? Show name and salary.`,
+      sql: `SELECT name, salary\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL\n  AND salary > (SELECT AVG(salary)\n                FROM employees\n                WHERE department_id = ${d.id}\n                  AND termination_date IS NULL);`,
+      broken: `SELECT name, salary\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL\n  AND salary > (SELECT AVG(salary) FROM employees);`,
+      hint: 'The subquery must average the same group: this department, current employees only.' };
+  } });
+  hh({ id: 'h-out-earn', tier: 4, skill: 'compare', rooms: ['hr:payroll'], gen() {
+    return { prompt: 'Which current employees earn more than their manager? Show the employee\'s name and salary, and the manager\'s name and salary.',
+      sql: 'SELECT e.name AS employee, e.salary, m.name AS manager, m.salary AS manager_salary\nFROM employees e\nJOIN employees m ON m.id = e.manager_id\nWHERE e.salary > m.salary\n  AND e.termination_date IS NULL;',
+      headers: ['employees.name (employee)', 'employees.salary (employee)', 'employees.name (manager)', 'employees.salary (manager)'], hint: 'A self-join puts each employee and their manager on one row. Then compare e.salary > m.salary.' };
+  } });
+  hh({ id: 'h-rating-pivot', tier: 4, skill: 'pivot', rooms: ['hr:exec'], gen(c) {
+    const y = c.pick([2024, 2025]);
+    return { prompt: `For each department name, how many ${y} reviews were a 5, and how many were a 1 or 2? Show three columns: department name, 5-star count, low count.`,
+      sql: `SELECT d.name,\n       SUM(CASE WHEN r.rating = 5 THEN 1 ELSE 0 END) AS fives,\n       SUM(CASE WHEN r.rating <= 2 THEN 1 ELSE 0 END) AS lows\nFROM reviews r\nJOIN employees e ON e.id = r.employee_id\nJOIN departments d ON d.id = e.department_id\nWHERE r.review_year = ${y}\nGROUP BY d.id;`,
+      headers: ['departments.name', 'number of 5 ratings', 'number of 1 or 2 ratings'], hint: 'One SUM(CASE WHEN ... THEN 1 ELSE 0 END) per column.' };
+  } });
+  hh({ id: 'h-band', tier: 4, skill: 'case', rooms: ['hr:payroll'], gen() {
+    return { prompt: "Put current employees into salary bands: 'entry' under 70000, 'mid' 70000 to under 120000, 'senior' 120000 or more. Show each band and how many employees are in it.",
+      sql: "SELECT CASE WHEN salary < 70000 THEN 'entry'\n            WHEN salary < 120000 THEN 'mid'\n            ELSE 'senior' END AS band,\n       COUNT(*)\nFROM employees\nWHERE termination_date IS NULL\nGROUP BY band;",
+      broken: "SELECT CASE WHEN salary < 70000 THEN 'entry'\n            WHEN salary <= 120000 THEN 'mid'\n            ELSE 'senior' END AS band,\n       COUNT(*)\nFROM employees\nWHERE termination_date IS NULL\nGROUP BY band;",
+      headers: ["band ('entry', 'mid', or 'senior')", 'count'], hint: 'CASE WHEN ... THEN ... END builds the band. Watch "under" vs "or more" at the boundaries.' };
+  } });
+  hh({ id: 'h-cross-dept', tier: 4, skill: 'exists', rooms: ['hr:projects'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `Which current ${d.name} employees (department_id ${d.id}) work on at least one project owned by a different department? Show their names.`,
+      sql: `SELECT e.name\nFROM employees e\nWHERE e.department_id = ${d.id}\n  AND e.termination_date IS NULL\n  AND EXISTS (SELECT 1\n              FROM assignments a\n              JOIN projects p ON p.id = a.project_id\n              WHERE a.employee_id = e.id\n                AND p.department_id <> e.department_id);`,
+      broken: `SELECT e.name\nFROM employees e\nWHERE e.department_id = ${d.id}\n  AND e.termination_date IS NULL\n  AND EXISTS (SELECT 1\n              FROM assignments a\n              JOIN projects p ON p.id = a.project_id\n              WHERE p.department_id <> e.department_id);`,
+      hint: 'Tie the subquery to this employee: a.employee_id = e.id.' };
+  } });
+  hh({ id: 'h-no-review', tier: 4, skill: 'exists', rooms: ['hr:exec'], gen() {
+    return { prompt: 'Which current employees, hired before 2025, have no 2025 review? Leave out the CEO (who has no manager). Show their names.',
+      sql: "SELECT e.name\nFROM employees e\nWHERE e.termination_date IS NULL\n  AND e.hire_date < '2025-01-01'\n  AND e.manager_id IS NOT NULL\n  AND NOT EXISTS (SELECT 1\n                  FROM reviews r\n                  WHERE r.employee_id = e.id\n                    AND r.review_year = 2025);",
+      broken: "SELECT e.name\nFROM employees e\nLEFT JOIN reviews r ON r.employee_id = e.id\nWHERE e.termination_date IS NULL\n  AND e.hire_date < '2025-01-01'\n  AND e.manager_id IS NOT NULL\n  AND r.review_year <> 2025;",
+      hint: 'You need "no 2025 review exists", which is a NOT EXISTS question, not a filter on review rows.' };
+  } });
+  hh({ id: 'h-union', tier: 4, skill: 'union', rooms: ['hr:projects'], gen(c) {
+    const p = c.pick(c.q('SELECT p.id, p.name, p.department_id FROM projects p WHERE EXISTS (SELECT 1 FROM assignments a WHERE a.project_id = p.id)'));
+    return { prompt: `Make a contact list for ${p.name}: everyone assigned to it, plus every manager (anyone with a title containing 'Manager' or 'VP') in the department that owns it (department_id ${p.department_id}). Show each name once.`,
+      sql: `SELECT e.name\nFROM assignments a\nJOIN employees e ON e.id = a.employee_id\nWHERE a.project_id = ${p.id}\nUNION\nSELECT name\nFROM employees\nWHERE department_id = ${p.department_id}\n  AND (job_title LIKE '%Manager%' OR job_title LIKE 'VP%');`,
+      broken: `SELECT e.name\nFROM assignments a\nJOIN employees e ON e.id = a.employee_id\nWHERE a.project_id = ${p.id}\nUNION ALL\nSELECT name\nFROM employees\nWHERE department_id = ${p.department_id}\n  AND (job_title LIKE '%Manager%' OR job_title LIKE 'VP%');`,
+      headers: ['employee name'], grain: 'one row per person', hint: 'Two lists, joined with UNION (which drops repeats). Note the parentheses around the OR.' };
+  } });
+  hh({ id: 'h-skip-level', tier: 4, skill: 'selfjoin', rooms: ['hr:people'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `For current employees in ${d.name} (department_id ${d.id}) who have a manager's manager, show the employee's name, their manager's name, and their manager's manager's name.`,
+      sql: `SELECT e.name AS employee, m.name AS manager, g.name AS manager_of_manager\nFROM employees e\nJOIN employees m ON m.id = e.manager_id\nJOIN employees g ON g.id = m.manager_id\nWHERE e.department_id = ${d.id}\n  AND e.termination_date IS NULL;`,
+      headers: ['employees.name (employee)', 'employees.name (manager)', "employees.name (manager's manager)"], hint: "Chain two self-joins: employee → manager via e.manager_id, then manager → their manager via m.manager_id." };
+  } });
+  // ----- tier 5
+  hh({ id: 'h-rank-dept', tier: 5, skill: 'window', rooms: ['hr:payroll'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `Rank current ${d.name} employees (department_id ${d.id}) by salary, highest first, with ties sharing a rank. Show name, salary, and rank.`,
+      sql: `SELECT name, salary, RANK() OVER (ORDER BY salary DESC) AS rnk\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL;`,
+      broken: `SELECT name, salary, ROW_NUMBER() OVER (ORDER BY salary DESC) AS rnk\nFROM employees\nWHERE department_id = ${d.id}\n  AND termination_date IS NULL;`,
+      headers: ['employees.name', 'employees.salary', 'rank (ties share)'], hint: 'RANK() gives ties the same number. ROW_NUMBER() never does.' };
+  } });
+  hh({ id: 'h-top-earner', tier: 5, skill: 'window', rooms: ['hr:exec'], gen() {
+    return { prompt: 'Who is the highest-paid current employee in each department? Show department name, employee name, and salary. Break ties by name, alphabetically first.',
+      sql: 'SELECT dept, name, salary\nFROM (SELECT d.name AS dept, e.name, e.salary,\n             ROW_NUMBER() OVER (PARTITION BY d.id ORDER BY e.salary DESC, e.name) AS rn\n      FROM employees e\n      JOIN departments d ON d.id = e.department_id\n      WHERE e.termination_date IS NULL)\nWHERE rn = 1;',
+      headers: ['departments.name', 'employees.name', 'employees.salary'], grain: 'one row per department', hint: 'ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC), then keep row 1.' };
+  } });
+  hh({ id: 'h-rating-change', tier: 5, skill: 'window', rooms: ['hr:exec'], gen(c) {
+    const d = hdep(c);
+    return { prompt: `For ${d.name} employees (department_id ${d.id}) reviewed in both 2024 and 2025, show name, 2025 rating, and the change from their 2024 rating.`,
+      sql: `SELECT name, rating, change\nFROM (SELECT e.name, r.review_year, r.rating,\n             r.rating - LAG(r.rating) OVER (PARTITION BY r.employee_id ORDER BY r.review_year) AS change\n      FROM reviews r\n      JOIN employees e ON e.id = r.employee_id\n      WHERE e.department_id = ${d.id})\nWHERE review_year = 2025\n  AND change IS NOT NULL;`,
+      headers: ['employees.name', 'reviews.rating (2025)', 'change from 2024'], grain: 'one row per employee', hint: 'LAG(rating) OVER (PARTITION BY employee ORDER BY year) gives last year\'s rating. Filter in an outer query.' };
+  } });
+  hh({ id: 'h-payroll-share', tier: 5, skill: 'window', rooms: ['hr:exec'], gen() {
+    return { prompt: "What share of current payroll does each department account for? Show department name, total salary, and percent of company payroll, rounded to 1 decimal.",
+      sql: 'SELECT d.name, SUM(e.salary) AS payroll,\n       ROUND(100.0 * SUM(e.salary) / SUM(SUM(e.salary)) OVER (), 1) AS pct\nFROM employees e\nJOIN departments d ON d.id = e.department_id\nWHERE e.termination_date IS NULL\nGROUP BY d.id;',
+      headers: ['departments.name', 'total salary', 'percent of payroll, 1 decimal'], hint: 'SUM(SUM(salary)) OVER () is the company total. Use 100.0 to keep decimals.' };
+  } });
+  hh({ id: 'h-cte-ratings', tier: 5, skill: 'cte', rooms: ['hr:exec'], gen(c) {
+    const y = c.pick([2024, 2025]);
+    return { prompt: `Which departments had an average ${y} rating above the company-wide average ${y} rating? Show department name and its average, rounded to 2 decimals.`,
+      sql: `WITH dept AS (\n  SELECT e.department_id, AVG(r.rating) AS avg_rating\n  FROM reviews r\n  JOIN employees e ON e.id = r.employee_id\n  WHERE r.review_year = ${y}\n  GROUP BY e.department_id\n)\nSELECT d.name, ROUND(dept.avg_rating, 2)\nFROM dept\nJOIN departments d ON d.id = dept.department_id\nWHERE dept.avg_rating > (SELECT AVG(rating) FROM reviews WHERE review_year = ${y});`,
+      headers: ['departments.name', 'average rating, 2 decimals'], grain: 'one row per department', hint: 'Average per department in a CTE, then compare with the overall average for the same year.' };
+  } });
+  hh({ id: 'h-dedupe-keep', tier: 5, skill: 'dedupe', rooms: ['hr:projects'], gen() {
+    return { prompt: 'Clean up duplicate assignments: list the ids of the extra copies to delete. Duplicates share employee_id and project_id. Keep the lowest id in each group.',
+      sql: 'SELECT id\nFROM assignments\nWHERE id NOT IN (SELECT MIN(id)\n                 FROM assignments\n                 GROUP BY employee_id, project_id);',
+      broken: 'SELECT id\nFROM assignments\nWHERE id NOT IN (SELECT MIN(id)\n                 FROM assignments\n                 GROUP BY employee_id);',
+      headers: ['assignments.id'], grain: 'one row per extra copy', hint: 'Keep MIN(id) per group and delete everything else. ROW_NUMBER() OVER (PARTITION BY ...) also works.' };
+  } });
+  // ----- predict
+  hh({ id: 'p-h-avg', tier: 2, skill: 'aggregate', predict: true, rooms: ['hr:payroll'], gen(c) {
+    const d = hdep(c);
+    return { sampleSql: `SELECT id, name, salary, termination_date FROM employees WHERE department_id = ${d.id} ORDER BY id LIMIT 5`,
+      query: 'SELECT AVG(salary)\nFROM sample\nWHERE termination_date IS NULL;', prompt: 'What number does this query return? Exact value.', hint: 'Only rows with no termination_date count. Add their salaries and divide by how many there are.' };
+  } });
+  hh({ id: 'p-h-null', tier: 1, skill: 'null', predict: true, rooms: ['hr:people'], gen(c) {
+    const gone = c.shuffle(c.q('SELECT id FROM employees WHERE termination_date IS NOT NULL')).slice(0, c.int(1, 3)).map((x) => x.id);
+    const here = c.shuffle(c.q('SELECT id FROM employees WHERE termination_date IS NULL')).slice(0, 7 - gone.length).map((x) => x.id);
+    return { sampleSql: `SELECT id, name, hire_date, termination_date FROM employees WHERE id IN (${[...gone, ...here].join(', ')}) ORDER BY id`,
+      query: 'SELECT COUNT(*) - COUNT(termination_date)\nFROM sample;', prompt: 'What number does this query return?', hint: 'COUNT(*) counts every row; COUNT(termination_date) skips NULLs. The difference is the number of NULLs.' };
+  } });
+
+  E.registerContext({
+    id: 'hr', name: 'Company HR', short: 'HR', blurb: 'Employees who manage employees. Self-joins, projects, and reviews.',
+    schema: H_SCHEMA, generate: hGenerate, templates: H,
+    notes: {
+      departments: 'Departments and the city they work out of. Executive holds the CEO.',
+      employees: 'Everyone who has worked here. manager_id points to another employee (the same table). termination_date is empty for current employees. Some emails were typed inconsistently.',
+      projects: 'Projects owned by a department. end_date is empty while running.',
+      assignments: 'Who works on which project. A few rows were logged twice.',
+      reviews: 'Yearly ratings from 1 to 5. reviewer_id points to an employee.',
+    },
+    tableOrder: ['employees', 'departments', 'projects', 'assignments', 'reviews'],
+    singular: { departments: 'department', employees: 'employee', projects: 'project', assignments: 'assignment', reviews: 'review', managers: 'manager', manager: 'manager', job_title: 'job title', year: 'year', band: 'salary band' },
+    areas: [
+      { key: 'hr:people', label: 'People ops', color: '--mri', tier: 1, roles: ['HR partner', 'people ops lead'] },
+      { key: 'hr:payroll', label: 'Payroll', color: '--rad', tier: 1, roles: ['payroll manager', 'compensation analyst'] },
+      { key: 'hr:projects', label: 'Project office', color: '--ct', tier: 1, roles: ['program manager', 'project coordinator'] },
+      { key: 'hr:exec', label: 'Leadership', color: '--dept', tier: 3, roles: ['chief of staff', 'COO'] },
+    ],
+  });
+})(typeof module !== 'undefined' && module.exports ? require('./engine.js') : window.Engine);
 
 </script>
 <script>
@@ -1554,17 +2773,27 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   const E = window.Engine;
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const ROOM_VAR = { CT: '--ct', MRI: '--mri', Mammo: '--mammo', Fluoro: '--fluoro', Radiography: '--rad', Department: '--dept' };
-  const ROOM_LABEL = { CT: 'CT', MRI: 'MRI', Mammo: 'Mammography', Fluoro: 'Fluoroscopy', Radiography: 'Radiography', Department: 'Physics office' };
-  const ROOM_TIER = { Radiography: 1, CT: 1, Department: 1, MRI: 2, Mammo: 3, Fluoro: 4 };
+  const AREA = {};
+  Object.values(E.CTX).forEach((d) => d.areas.forEach((a) => { AREA[a.key] = Object.assign({ ctx: d.id }, a); }));
+  const CTX_IDS = Object.keys(E.CTX);
+  const areaLabel = (k) => (AREA[k] ? AREA[k].label : k);
+  const areaTier = (k) => (AREA[k] ? AREA[k].tier : 1);
+  const ctxName = (id) => (E.CTX[id] ? E.CTX[id].name : id);
   const TYPE_LABEL = { write: 'Write it', fix: 'Fix it', match: 'Match it', predict: 'Predict it' };
   const KEY = 'physicsShift.v1';
 
   // ---------- persistent state ----------
-  const fresh = () => ({ seed: Math.floor(Math.random() * 1e9), tier: 1, maxTier: 1, tierMode: 'auto', streak: 0, best: 0, solved: 0, clean: 0, graded: 0, skills: {}, rooms: {}, history: [], inbox: [], inboxSeed: null, theme: null });
+  const newSeed = () => Math.floor(Math.random() * 1e9);
+  const fresh = () => ({ seed: newSeed(), seeds: {}, ctx: 'hospital', ctxStats: {}, tier: 1, maxTier: 1, tierMode: 'auto', streak: 0, best: 0, solved: 0, clean: 0, graded: 0, skills: {}, rooms: {}, history: [], inbox: [], inboxSeed: null, theme: null });
   let S = fresh();
   try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
   S.maxTier = Math.max(S.maxTier || 1, S.tier);
+  if (!S.seeds || typeof S.seeds !== 'object') S.seeds = {};
+  if (!S.seeds.hospital) S.seeds.hospital = S.seed;
+  CTX_IDS.forEach((id) => { if (!S.seeds[id]) S.seeds[id] = newSeed(); });
+  if (!S.ctxStats) S.ctxStats = {};
+  if (S.ctx !== 'mixed' && !E.CTX[S.ctx]) S.ctx = 'hospital';
+  S.inbox = (S.inbox || []).filter((sp) => { if (!sp.ctx) { if (S.inboxSeed !== S.seeds.hospital) return false; sp.ctx = 'hospital'; sp.db = S.seeds.hospital; } return true; });
   if (S.tierMode === 'auto' && S.tier < S.maxTier) { S.tier = S.maxTier; S.history = []; }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
@@ -1575,10 +2804,10 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   themeBtn.addEventListener('click', () => { S.theme = isDark() ? 'light' : 'dark'; save(); applyTheme(); });
   applyTheme();
 
-  let SQL, bytes, staff = [], schema = {}, ticket = null, cm = null, last = [], view = 'map', focus = null;
+  let SQL, bytes, staff = [], schema = {}, curCtx = 'hospital', ticket = null, cm = null, last = [], view = 'map', focus = null;
   const freshIds = new Set();
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const tk = { firstTry: true, revealed: false, hinted: false, recorded: false, solved: false };
+  const tk = { firstTry: true, revealed: false, hinted: false, recorded: false, solved: false, walk: 0 };
 
   function toast(msg) {
     document.querySelectorAll('.toast').forEach((t) => t.remove());
@@ -1595,22 +2824,29 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     $('#tierMode').value = S.tierMode;
   }
 
-  function loadHospital() {
-    bytes = E.generate(SQL, S.seed);
-    const d = new SQL.Database(bytes);
-    staff = d.exec('SELECT id, name, role, modality FROM staff')[0].values.map((v) => ({ id: v[0], name: v[1], role: v[2], modality: v[3] }));
-    schema = {};
-    ['machines', 'qc_tests', 'exams', 'protocols', 'staff'].forEach((t) => {
+  const DBS = {};
+  function dbFor(id) {
+    if (DBS[id] && DBS[id].seed === S.seeds[id]) return DBS[id];
+    const def = E.CTX[id], b = def.generate(SQL, S.seeds[id]);
+    const d = new SQL.Database(b), sc = {};
+    def.tableOrder.forEach((t) => {
       const cols = d.exec(`PRAGMA table_info(${t})`)[0].values.map((v) => ({ name: v[1], type: v[2] }));
-      schema[t] = { cols, n: d.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0] };
+      sc[t] = { cols, n: d.exec(`SELECT COUNT(*) FROM ${t}`)[0].values[0][0] };
     });
+    const people = id === 'hospital' ? d.exec('SELECT id, name, role, modality FROM staff')[0].values.map((v) => ({ id: v[0], name: v[1], role: v[2], modality: v[3] })) : [];
     d.close();
-    if (S.inboxSeed !== S.seed) { S.inbox = []; S.inboxSeed = S.seed; }
+    DBS[id] = { seed: S.seeds[id], bytes: b, schema: sc, staff: people };
+    if (id === 'hospital') staff = people;
+    return DBS[id];
   }
+  function useCtx(id) { const db = dbFor(id); curCtx = id; bytes = db.bytes; schema = db.schema; }
+  const activeCtxs = () => (S.ctx === 'mixed' ? CTX_IDS : [S.ctx]);
+  const visible = () => S.inbox.filter((sp) => activeCtxs().includes(sp.ctx));
 
   // ---------- rooms and the inbox ----------
-  const unlocked = (room) => S.tierMode !== 'auto' || ROOM_TIER[room] <= S.maxTier;
-  const openRooms = () => E.ROOMS.filter(unlocked);
+  const unlocked = (room) => S.tierMode !== 'auto' || areaTier(room) <= S.maxTier;
+  const areasOf = (ids) => ids.flatMap((id) => E.CTX[id].areas.map((a) => a.key));
+  const openRooms = () => areasOf(activeCtxs()).filter(unlocked);
   const tierCap = () => (S.tierMode === 'auto' ? S.tier : Number(S.tierMode));
 
   function weakSkills() {
@@ -1618,7 +2854,8 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     return Object.entries(S.skills).filter(([k, v]) => v.n >= 2 && v.ok / v.n < 0.6 && E.TEMPLATES.some((t) => t.skill === k && t.tier <= cap)).map(([k]) => k);
   }
   function chooseTemplate(room, skill) {
-    const fits = (t) => t.rooms.some((r) => unlocked(r) && (!room || r === room));
+    const ctxs = activeCtxs();
+    const fits = (t) => ctxs.includes(t.ctx) && t.rooms.some((r) => unlocked(r) && (!room || r === room));
     const T = E.TEMPLATES.filter(fits);
     if (skill) {
       const cap = S.tierMode === 'auto' ? Math.max(S.tier, S.maxTier) : 5;
@@ -1644,6 +2881,9 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   }
   function senderFor(room) {
     const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+    const ar = AREA[room];
+    if (ar && ar.ctx !== 'hospital') return { name: pickOne(E.util.FIRST) + ' ' + pickOne(E.util.LAST), role: pickOne(ar.roles || ['coordinator']) };
+    dbFor('hospital');
     if (room === 'Department') return pickOne(staff.filter((s) => s.role === 'Physicist'));
     const techs = staff.filter((s) => s.modality === room);
     return Math.random() < 0.3 ? pickOne(staff.filter((s) => s.role === 'Radiologist')) : pickOne(techs.length ? techs : staff);
@@ -1652,20 +2892,30 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     for (let i = 0; i < 14; i++) {
       const t = chooseTemplate(room, skill);
       if (!t) return null;
+      if (!skill && i < 10 && S.inbox.some((s) => s.tid === t.id && s.room === (room || s.room))) continue;
       const rooms = t.rooms.filter((r) => unlocked(r) && (!room || r === room));
       const r = room || rooms[Math.floor(Math.random() * rooms.length)];
       const seed = Math.floor(Math.random() * 1e9);
-      const k = E.makeTicket(SQL, bytes, t, seed, null, r);
+      const k = E.makeTicket(SQL, dbFor(t.ctx).bytes, t, seed, null, r);
       if (!k) continue;
-      return { id: seed.toString(36) + i, tid: t.id, seed, room: r, type: k.type, tier: t.tier, skill: t.skill, prompt: k.prompt, from: senderFor(r).id };
+      const snd = senderFor(r);
+      const cold = k.type !== 'predict' && t.tier >= 2 && Math.random() < 0.15;
+      return { id: seed.toString(36) + i, tid: t.id, ctx: t.ctx, db: S.seeds[t.ctx], seed, room: r, type: k.type, tier: t.tier, skill: t.skill, prompt: k.prompt, cold, from: snd.id !== undefined ? snd.id : snd };
     }
     return null;
   }
   function fillInbox() {
-    S.inbox = S.inbox.filter((s) => unlocked(s.room) && E.TEMPLATES.some((t) => t.id === s.tid) && (S.tierMode === 'auto' ? s.tier <= S.tier : s.tier === Number(S.tierMode)));
-    openRooms().forEach((r) => { if (!S.inbox.some((s) => s.room === r)) { const sp = makeSpec(r); if (sp) S.inbox.push(sp); } });
+    S.inbox = S.inbox.filter((s) => s.db === S.seeds[s.ctx] && unlocked(s.room) && E.TEMPLATES.some((t) => t.id === s.tid) && (S.tierMode === 'auto' ? s.tier <= S.tier : s.tier === Number(S.tierMode)));
+    if (S.ctx !== 'mixed') openRooms().forEach((r) => { if (!S.inbox.some((s) => s.room === r)) { const sp = makeSpec(r); if (sp) S.inbox.push(sp); } });
     let guard = 0;
-    while (S.inbox.length < 8 && guard++ < 20) {
+    const want = S.ctx === 'mixed' ? 10 : 8;
+    if (S.ctx === 'mixed' && visible().length > want) {
+      const byCtx = {}; visible().forEach((sp) => { (byCtx[sp.ctx] = byCtx[sp.ctx] || []).push(sp); });
+      const keep = new Set(); let k = 0;
+      while (keep.size < want && k < 20) { Object.values(byCtx).forEach((arr) => { if (arr[k] && keep.size < want) keep.add(arr[k].id); }); k++; }
+      S.inbox = S.inbox.filter((sp) => keep.has(sp.id));
+    }
+    while (visible().length < want && guard++ < 24) {
       const sp = makeSpec(roomWithSpace());
       if (sp && S.inbox.filter((s) => s.room === sp.room).length < 3) S.inbox.push(sp);
     }
@@ -1696,13 +2946,13 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     if (sp) { S.inbox.push(sp); freshIds.add(sp.id); }
     fillInbox();
     renderMap(true);
-    toast(sp ? `Dismissed. New ${E.SKILLS[sp.skill]} ticket in ${ROOM_LABEL[sp.room]}.` : 'Ticket dismissed.');
+    toast(sp ? `Dismissed. New ${E.SKILLS[sp.skill]} ticket in ${areaLabel(sp.room)}.` : 'Ticket dismissed.');
   }
   function closeSpec(spec, announce) {
     S.inbox = S.inbox.filter((s) => s.id !== spec.id);
     const sp = arrive();
     fillInbox();
-    if (announce && sp) toast(`New ticket in ${ROOM_LABEL[sp.room]}`);
+    if (announce && sp) toast(`New ticket in ${areaLabel(sp.room)}`);
   }
 
   // ---------- recording ----------
@@ -1712,15 +2962,16 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     const sk = ticket.template.skill, room = ticket.room;
     const v = S.skills[sk] || { n: 0, ok: 0 }; v.n++; if (ok) v.ok++; S.skills[sk] = v;
     const rv = S.rooms[room] || { n: 0, ok: 0 }; rv.n++; if (ok) rv.ok++; S.rooms[room] = rv;
+    const cv = S.ctxStats[ticket.ctx] || { n: 0, ok: 0 }; cv.n++; if (ok) cv.ok++; S.ctxStats[ticket.ctx] = cv;
     S.graded++; if (ok) { S.clean++; S.streak++; S.best = Math.max(S.best, S.streak); } else S.streak = 0;
     if (S.tierMode === 'auto' && ticket.template.tier === S.tier) {
       S.history.push(ok ? 1 : 0); S.history = S.history.slice(-5);
       const sum = S.history.reduce((a, b) => a + b, 0);
       if (S.history.length >= 5 && sum >= 4 && S.tier < 5) {
         S.tier++; S.history = [];
-        const newly = E.ROOMS.filter((r) => ROOM_TIER[r] === S.tier && S.tier > S.maxTier);
+        const newly = areasOf(activeCtxs()).filter((r) => areaTier(r) === S.tier && S.tier > S.maxTier);
         S.maxTier = Math.max(S.maxTier, S.tier);
-        toast(newly.length ? `Promoted to tier ${S.tier}. ${newly.map((r) => ROOM_LABEL[r]).join(' and ')} unlocked.` : `Promoted to tier ${S.tier}.`);
+        toast(newly.length ? `Promoted to tier ${S.tier}. ${newly.map(areaLabel).join(' and ')} unlocked.` : `Promoted to tier ${S.tier}.`);
       } else if (S.history.length >= 5) S.history = S.history.slice(-4);
     }
     save(); updateStats();
@@ -1745,7 +2996,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     while ((m = re.exec(sql))) if (schema[m[1].toLowerCase()]) names.add(m[1].toLowerCase());
     return [...names];
   }
-  const roomStyle = (room) => `--room: var(${ROOM_VAR[room] || '--dept'})`;
+  const roomStyle = (room) => `--room: var(${(AREA[room] && AREA[room].color) || '--dept'})`;
 
   // ---------- the department map ----------
   const GEO = {
@@ -1808,16 +3059,16 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       <path class="entrance" d="M928 280 l-22 -12 v24 z"/><text class="corridor-text" x="850" y="306">ENTRANCE</text>`;
     E.ROOMS.forEach((room) => {
       const g = GEO[room], info = roomInfo(room), dy = g.side === 'b' ? g.y + g.h : g.y;
-      const sub = info.locked ? `Unlocks at tier ${ROOM_TIER[room]}` : `${info.open} open${info.acc !== null ? ` · ${info.acc}% first-try` : ''}`;
+      const sub = info.locked ? `Unlocks at tier ${areaTier(room)}` : `${info.open} open${info.acc !== null ? ` · ${info.acc}% first-try` : ''}`;
       const weak = info.acc !== null && S.rooms[room].n >= 3 && info.acc < 60;
-      s += `<g class="room${info.locked ? ' locked' : ''}${weak ? ' weak' : ''}" style="${roomStyle(room)}" data-room="${room}" ${info.locked ? 'aria-disabled="true"' : 'tabindex="0" role="button"'} aria-label="${ROOM_LABEL[room]}, ${esc(sub)}">
+      s += `<g class="room${info.locked ? ' locked' : ''}${weak ? ' weak' : ''}" style="${roomStyle(room)}" data-room="${room}" ${info.locked ? 'aria-disabled="true"' : 'tabindex="0" role="button"'} aria-label="${areaLabel(room)}, ${esc(sub)}">
         <rect class="room-fill" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"/>
         ${equipment(room, g)}
         ${info.locked ? `<rect class="lock" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"/>` : ''}
         <rect class="wall" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"/>
         <rect class="door-gap" x="${g.x + g.door}" y="${dy - 4}" width="44" height="8"/>
         <path class="door-swing" d="${g.side === 'b' ? `M${g.x + g.door} ${dy} L${g.x + g.door} ${dy - 44} A44 44 0 0 1 ${g.x + g.door + 44} ${dy}` : `M${g.x + g.door} ${dy} L${g.x + g.door} ${dy + 44} A44 44 0 0 0 ${g.x + g.door + 44} ${dy}`}"/>
-        <text class="room-title" x="${g.x + 18}" y="${g.y + 36}">${ROOM_LABEL[room]}</text>
+        <text class="room-title" x="${g.x + 18}" y="${g.y + 36}">${areaLabel(room)}</text>
         <text class="room-sub" x="${g.x + 18}" y="${g.y + 58}">${esc(sub)}</text>
         ${info.locked ? `<text class="lock-text" x="${g.x + g.w / 2}" y="${g.y + g.h / 2 + 8}" text-anchor="middle">Locked</text>`
           : `<rect class="bar-bg" x="${g.x + 18}" y="${g.y + 68}" width="110" height="5" rx="2.5"/>${info.acc !== null ? `<rect class="bar-fg" x="${g.x + 18}" y="${g.y + 68}" width="${1.1 * info.acc}" height="5" rx="2.5"/>` : ''}
@@ -1826,41 +3077,48 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     });
     return s + '</svg>';
   }
-  function roomCards() {
-    return '<div class="room-cards">' + E.ROOMS.map((room) => {
+  function roomCards(keys, cls) {
+    return `<div class="${cls || 'room-cards'}">` + (keys || E.ROOMS).map((room) => {
       const info = roomInfo(room);
       return `<button type="button" class="room-card${info.locked ? ' locked' : ''}" style="${roomStyle(room)}" data-room="${room}" ${info.locked ? 'disabled' : ''}>
-        <span class="rc-top"><b>${ROOM_LABEL[room]}</b>${info.locked ? '<span class="rc-lock">Tier ' + ROOM_TIER[room] + '</span>' : info.open ? `<span class="rc-badge">${info.open}</span>` : ''}</span>
+        <span class="rc-top"><b>${areaLabel(room)}</b>${info.locked ? '<span class="rc-lock">Tier ' + areaTier(room) + '</span>' : info.open ? `<span class="rc-badge">${info.open}</span>` : ''}</span>
         <span class="rc-sub">${info.locked ? 'Locked' : info.acc !== null ? info.acc + '% first-try' : 'Not started'}</span>
         <span class="rc-bar"><span style="width:${info.acc || 0}%"></span></span>
       </button>`;
     }).join('') + '</div>';
   }
   function inboxList() {
-    const order = [...S.inbox].sort((a, b) => ROOM_TIER[a.room] - ROOM_TIER[b.room] || a.tier - b.tier);
+    const order = visible().sort((a, b) => a.tier - b.tier || areaTier(a.room) - areaTier(b.room));
     if (!order.length) return '<p class="muted">No open tickets. New ones arrive as you close others.</p>';
-    return '<ul class="inbox-list">' + order.map((sp, i) => `<li class="ii-li"><button type="button" class="ii-dismiss" data-dismiss="${sp.id}" aria-label="Dismiss ${ROOM_LABEL[sp.room]} ${TYPE_LABEL[sp.type]} ticket" title="Dismiss and get a different kind of ticket">×</button><button type="button" class="inbox-item${freshIds.has(sp.id) ? ' fresh' : ''}" style="${roomStyle(sp.room)}; --i: ${i}" data-spec="${sp.id}">
-        <span class="ii-head"><span class="ii-room"><span class="room-dot"></span>${ROOM_LABEL[sp.room]}${freshIds.has(sp.id) ? '<span class="new-tag">New</span>' : ''}</span><span class="ii-meta">${TYPE_LABEL[sp.type]} · T${sp.tier}</span></span>
+    return '<ul class="inbox-list">' + order.map((sp, i) => `<li class="ii-li"><button type="button" class="ii-dismiss" data-dismiss="${sp.id}" aria-label="Dismiss ${areaLabel(sp.room)} ${TYPE_LABEL[sp.type]} ticket" title="Dismiss and get a different kind of ticket">×</button><button type="button" class="inbox-item${freshIds.has(sp.id) ? ' fresh' : ''}" style="${roomStyle(sp.room)}; --i: ${i}" data-spec="${sp.id}">
+        <span class="ii-head"><span class="ii-room"><span class="room-dot"></span>${S.ctx === 'mixed' ? esc(E.CTX[sp.ctx].short) + ' · ' : ''}${areaLabel(sp.room)}${freshIds.has(sp.id) ? '<span class="new-tag">New</span>' : ''}</span><span class="ii-meta">${TYPE_LABEL[sp.type]} · T${sp.tier}</span></span>
         <span class="ii-prompt">${esc(sp.prompt)}</span></button></li>`).join('') + '</ul>';
   }
   function renderMap(quiet) {
     view = 'map'; cm = null;
     const weak = weakSkills();
+    activeCtxs().forEach(dbFor);
+    const home = S.ctx === 'hospital'
+      ? `<div class="plan-head"><h2>Imaging department</h2><span class="muted">Pick a room, or keep going through the inbox.</span><button class="btn" type="button" id="bStats">Your stats</button></div>
+          <div class="plan-wrap">${planSVG()}</div>${roomCards()}`
+      : `<div class="plan-head"><h2>${S.ctx === 'mixed' ? 'All datasets' : esc(ctxName(S.ctx))}</h2><span class="muted">Pick an area, or keep going through the inbox.</span><button class="btn" type="button" id="bStats">Your stats</button></div>
+          ${activeCtxs().map((id) => { const def = E.CTX[id]; return `<div class="ds-group">
+            <div class="ds-head">${S.ctx === 'mixed' ? `<h3>${esc(def.name)}</h3>` : ''}<span class="muted">${esc(def.blurb)}</span></div>
+            <div class="ds-tables"><span class="ds-tag">Tables</span>${def.tableOrder.map((t) => `<span>${t}</span>`).join('')}</div>
+            ${roomCards(def.areas.map((a) => a.key), 'area-board')}</div>`; }).join('')}`;
     $('#app').innerHTML = `
       <div class="mapview${quiet === true ? ' calm' : ''}">
         <section class="panel plan-panel">
-          <div class="plan-head"><h2>Imaging department</h2><span class="muted">Pick a room, or keep going through the inbox.</span><button class="btn" type="button" id="bStats">Your stats</button></div>
-          <div class="plan-wrap">${planSVG()}</div>
-          ${roomCards()}
+          ${home}
         </section>
         <aside class="panel inbox">
-          <div class="inbox-head"><h2>Open tickets <span class="count">${S.inbox.length}</span></h2>
-            <button class="btn primary" type="button" id="bGo" ${S.inbox.length ? '' : 'disabled'}>Keep going →</button></div>
+          <div class="inbox-head"><h2>Open tickets <span class="count">${visible().length}</span></h2>
+            <button class="btn primary" type="button" id="bGo" ${visible().length ? '' : 'disabled'}>Keep going →</button></div>
           ${weak.length ? `<div class="needs"><span class="label">Needs work</span><span>${weak.map((k) => esc(E.SKILLS[k])).join(', ')}</span></div>` : ''}
           ${inboxList()}
         </aside>
       </div>`;
-    const openRoom = (room) => { if (!unlocked(room)) return; const sp = S.inbox.find((s) => s.room === room) || makeSpec(room); if (sp) { if (!S.inbox.includes(sp)) S.inbox.push(sp); openSpec(sp); } else toast(`No tickets in ${ROOM_LABEL[room]} right now.`); };
+    const openRoom = (room) => { if (!unlocked(room)) return; const sp = S.inbox.find((s) => s.room === room) || makeSpec(room); if (sp) { if (!S.inbox.includes(sp)) S.inbox.push(sp); openSpec(sp); } else toast(`No tickets in ${areaLabel(room)} at your tier right now.`); };
     $('#app').querySelectorAll('[data-room]').forEach((el) => {
       el.addEventListener('click', () => openRoom(el.dataset.room));
       el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRoom(el.dataset.room); } });
@@ -1876,9 +3134,9 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   // ---------- tier guide ----------
   const TIERS = [
     { n: 1, name: 'Single table', blurb: 'Pull rows from one table, filter them, and sort them.' },
-    { n: 2, name: 'Summarizing', blurb: 'Turn many rows into counts, averages, and per-group totals.' },
-    { n: 3, name: 'Joins', blurb: 'Combine tables, like QC tests with the machines they ran on.' },
-    { n: 4, name: 'Analysis', blurb: 'Compare values across tables, build labels, and nest queries.' },
+    { n: 2, name: 'Summarizing', blurb: 'Counts, averages, per-group totals, date math, and cleaning messy text.' },
+    { n: 3, name: 'Joins', blurb: 'Combine tables, join a table to itself, and find duplicates.' },
+    { n: 4, name: 'Analysis', blurb: 'Compare across tables, label and pivot, nest queries, EXISTS, and UNION.' },
     { n: 5, name: 'Expert', blurb: 'Rank, run totals, compare to the previous row, and name steps with WITH.' },
   ];
   const SKILL_INFO = {
@@ -1901,13 +3159,21 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     subquery: ['A query inside a query, used as a value or a list.', 'WHERE id IN (SELECT machine_id\n  FROM qc_tests)'],
     window: ['Calculates across related rows without collapsing them: ranks, running totals, previous values.', 'RANK() OVER (ORDER BY COUNT(*) DESC)'],
     cte: ['WITH names a temporary result you can use later in the query, even twice.', 'WITH f AS (SELECT ...)\nSELECT * FROM f'],
+    coalesce: ['Replaces NULL with a value you choose. Returns the first argument that isn\'t NULL.', "COALESCE(ship_date, 'not shipped')"],
+    text: ['Cleans messy text: LOWER and UPPER fix case, TRIM strips spaces, REPLACE swaps characters.', 'LOWER(TRIM(email))'],
+    datemath: ['julianday() turns a date into a day number, so subtracting two gives the days between them.', 'julianday(ship_date)\n  - julianday(order_date)'],
+    selfjoin: ['Joins a table to itself with two aliases, for columns that point to another row of the same table.', 'FROM employees e\nJOIN employees m ON m.id = e.manager_id'],
+    exists: ['Keeps a row if a related row exists (or, with NOT, doesn\'t). The subquery must be tied to the outer row.', 'WHERE NOT EXISTS (SELECT 1 FROM orders o\n  WHERE o.customer_id = c.id)'],
+    union: ['Stacks two query results into one list. UNION drops duplicates; UNION ALL keeps them.', 'SELECT name FROM a\nUNION\nSELECT name FROM b'],
+    pivot: ['Turns categories into columns by counting each one with SUM(CASE WHEN ...).', "SUM(CASE WHEN status = 'returned'\n  THEN 1 ELSE 0 END)"],
+    dedupe: ['Finds repeated rows with GROUP BY ... HAVING COUNT(*) > 1, and picks the extras with ROW_NUMBER() or MIN(id).', 'GROUP BY student_id, course_id\nHAVING COUNT(*) > 1'],
   };
   function renderTiers() {
     view = 'tiers'; cm = null;
     const cur = S.tierMode === 'auto' ? S.tier : Number(S.tierMode);
     const cards = TIERS.map((T) => {
       const keys = Object.keys(E.SKILLS).filter((k) => skillTier(k) === T.n);
-      const rooms = E.ROOMS.filter((r) => ROOM_TIER[r] === T.n);
+      const rooms = areasOf(activeCtxs()).filter((r) => areaTier(r) === T.n);
       const open = S.tierMode !== 'auto' || T.n <= S.maxTier;
       const state = T.n === cur ? ['here', S.tierMode === 'auto' ? "You're here" : 'Practicing this tier']
         : S.tierMode === 'auto' && T.n < cur ? ['done', 'Passed'] : open ? ['open', 'Unlocked'] : ['locked', `Reach tier ${T.n} to unlock`];
@@ -1922,7 +3188,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         <div class="tier-num"><span>Tier</span><b>${T.n}</b></div>
         <div class="tier-main">
           <div class="tier-head"><div><h3>${T.name}</h3><p>${T.blurb}</p></div><span class="state ${state[0]}">${state[1]}</span></div>
-          ${rooms.length ? `<div class="tier-rooms">${T.n === 1 ? 'Open from the start:' : 'Unlocks:'} ${rooms.map((r) => `<span class="room-tag" style="${roomStyle(r)}">${ROOM_LABEL[r]}</span>`).join('')}</div>` : ''}
+          ${rooms.length ? `<div class="tier-rooms">${T.n === 1 ? 'Open from the start:' : 'Unlocks:'} ${rooms.map((r) => `<span class="room-tag" style="${roomStyle(r)}">${S.ctx === 'mixed' ? esc(E.CTX[AREA[r].ctx].short) + ' · ' : ''}${areaLabel(r)}</span>`).join('')}</div>` : ''}
           <div class="skill-list">${skills}</div>
         </div></section>`;
     }).join('');
@@ -1930,7 +3196,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       ? (S.tier >= 5 ? "You're at the top tier." : `Get 4 of your last 5 tier ${S.tier} tickets right on the first try to move up. Misses never drop you to a lower tier.`)
       : `You're locked to tier ${S.tierMode}. Switch Practice to Adaptive to move between tiers.`;
     $('#app').innerHTML = `
-      <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap4">← Department map</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Tier guide</span></nav>
+      <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap4">← ${homeLabel()}</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Tier guide</span></nav>
       <div class="tiersview">
         <section class="panel tiers-intro"><div><h2>What each tier covers</h2><p class="muted">${how}</p></div><button class="btn" type="button" id="bStats4">Your stats</button></section>
         ${cards}
@@ -1944,8 +3210,9 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   // ---------- stats ----------
   const GROUPS = [
     ['Filtering', ['where', 'like', 'in', 'null', 'distinct']], ['Sorting', ['order']], ['Aggregates', ['count', 'aggregate']],
-    ['Grouping', ['groupby', 'having']], ['Dates', ['date']], ['Joins', ['join', 'join3', 'compare']], ['Left joins', ['leftjoin']],
-    ['CASE', ['case']], ['Subqueries', ['subquery']], ['Window fns', ['window']], ['CTEs', ['cte']],
+    ['Grouping', ['groupby', 'having', 'dedupe']], ['Dates', ['date', 'datemath']], ['Text, NULLs', ['coalesce', 'text']],
+    ['Joins', ['join', 'join3', 'compare', 'selfjoin']], ['Left joins', ['leftjoin']], ['CASE', ['case', 'pivot']],
+    ['Subqueries', ['subquery']], ['EXISTS, UNION', ['exists', 'union']], ['Window fns', ['window']], ['CTEs', ['cte']],
   ];
   const skillTier = (k) => Math.min(...E.TEMPLATES.filter((t) => t.skill === k).map((t) => t.tier));
   function groupStat(keys) { let n = 0, ok = 0; keys.forEach((k) => { const v = S.skills[k]; if (v) { n += v.n; ok += v.ok; } }); return { n, ok }; }
@@ -1991,9 +3258,10 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         <td><div class="sk-acc"><span class="sk-bar"><span style="width:${p || 0}%"></span></span><span class="sk-pct">${p === null ? '' : p + '%'}</span></div></td>
         <td class="sk-act">${open ? `<button class="btn small" type="button" data-practice="${k}">Practice</button>` : `<span class="muted">Tier ${mt}</span>`}</td></tr>`;
     }).join('');
-    const rooms = E.ROOMS.map((r) => { const v = S.rooms[r], p = pct(v); return `<div class="rs-card" style="${roomStyle(r)}"><b>${ROOM_LABEL[r]}</b><span class="rs-num">${p === null ? '–' : p + '%'}</span><span class="rc-bar"><span style="width:${p || 0}%"></span></span><span class="muted">${v ? v.n + ' ticket' + (v.n === 1 ? '' : 's') : unlocked(r) ? 'Not started' : 'Locked'}</span></div>`; }).join('');
+    const dsCards = CTX_IDS.map((id) => { const v = S.ctxStats[id], p = pct(v); return `<div class="rs-card" style="${roomStyle(E.CTX[id].areas[0].key)}"><b>${esc(E.CTX[id].name)}</b><span class="rs-num">${p === null ? '–' : p + '%'}</span><span class="rc-bar"><span style="width:${p || 0}%"></span></span><span class="muted">${v ? v.n + ' ticket' + (v.n === 1 ? '' : 's') : 'Not started'}</span></div>`; }).join('');
+    const rooms = areasOf(activeCtxs()).map((r) => { const v = S.rooms[r], p = pct(v); return `<div class="rs-card" style="${roomStyle(r)}"><b>${S.ctx === 'mixed' ? esc(E.CTX[AREA[r].ctx].short) + ' · ' : ''}${areaLabel(r)}</b><span class="rs-num">${p === null ? '–' : p + '%'}</span><span class="rc-bar"><span style="width:${p || 0}%"></span></span><span class="muted">${v ? v.n + ' ticket' + (v.n === 1 ? '' : 's') : unlocked(r) ? 'Not started' : 'Locked'}</span></div>`; }).join('');
     $('#app').innerHTML = `
-      <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap3">← Department map</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Physics office · your stats</span></nav>
+      <nav class="crumbs"><button class="btn quiet back" type="button" id="bMap3">← ${homeLabel()}</button><span class="crumb-room" style="${roomStyle('Department')}"><span class="room-dot"></span>Your stats</span></nav>
       <div class="statsview">
         <section class="panel tiles">
           <div class="tile"><span class="t-label">Tier</span><b>${tierNow}</b><span class="pdots" aria-label="Last five tickets at this tier">${dots}</span><span class="t-note">${promo}</span></div>
@@ -2006,7 +3274,8 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
           <section class="panel skills-panel"><h2 class="panel-title">Every skill <small>practice one to get a run of only that skill</small></h2>
             <div class="sk-wrap"><table class="sk-table"><thead><tr><th>Skill</th><th class="sk-tier">Tier</th><th class="sk-n">Passed</th><th>First-try</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>
         </div>
-        <section class="panel rooms-panel"><h2 class="panel-title">By room</h2><div class="rs-grid">${rooms}</div></section>
+        <section class="panel rooms-panel"><h2 class="panel-title">By dataset</h2><div class="rs-grid">${dsCards}</div></section>
+        <section class="panel rooms-panel"><h2 class="panel-title">By ${S.ctx === 'hospital' ? 'room' : 'area'} <small>${S.ctx === 'mixed' ? 'all datasets' : esc(ctxName(S.ctx))}</small></h2><div class="rs-grid">${rooms}</div></section>
         <div class="reset-row"><button class="btn quiet" type="button" id="bResetAll">Reset progress</button></div>
       </div>`;
     $('#bMap3').onclick = renderMap;
@@ -2014,7 +3283,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     $('#bResetAll').onclick = (e) => {
       const b = e.currentTarget;
       if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = 'Click again to erase all progress'; setTimeout(() => { if (b.isConnected) { delete b.dataset.confirm; b.textContent = 'Reset progress'; } }, 3000); return; }
-      S = Object.assign(fresh(), { seed: S.seed, inboxSeed: S.seed, theme: S.theme });
+      S = Object.assign(fresh(), { seed: S.seed, seeds: S.seeds, ctx: S.ctx, theme: S.theme });
       fillInbox(); save(); updateStats(); renderStats(); toast('Progress reset. Back to tier 1.');
     };
     window.scrollTo({ top: 0 });
@@ -2025,13 +3294,16 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   function openSpec(spec) {
     if (!spec) return;
     const t = E.TEMPLATES.find((x) => x.id === spec.tid);
-    const k = t && E.makeTicket(SQL, bytes, t, spec.seed, null, spec.room);
+    if (t) useCtx(t.ctx);
+    const k = t && spec.db === S.seeds[t.ctx] && E.makeTicket(SQL, bytes, t, spec.seed, null, spec.room);
     if (!k) { S.inbox = S.inbox.filter((s) => s.id !== spec.id); fillInbox(); return view === 'map' ? renderMap() : nextSpec(null); }
-    ticket = k; ticket.spec = spec;
-    ticket.sender = staff.find((s) => s.id === spec.from) || senderFor(spec.room);
+    ticket = k; ticket.spec = spec; ticket.ctx = t.ctx; ticket.cold = !!spec.cold && k.type !== 'predict';
+    ticket.sender = (spec.from && typeof spec.from === 'object') ? spec.from : (staff.find((s) => s.id === spec.from) || senderFor(spec.room));
+    if (ticket.cold) ticket.headers = ticket.headers.map((h) => ({ text: h.calc ? h.text : h.text.replace(/^\w+\./, ''), calc: h.calc }));
     last = [t.id, ...last].slice(0, 5);
-    Object.assign(tk, { firstTry: true, revealed: false, hinted: false, recorded: false, solved: false });
+    Object.assign(tk, { firstTry: true, revealed: false, hinted: false, recorded: false, solved: false, walk: 0 });
     if (view !== 'desk') renderShell();
+    renderSchema();
     view = 'desk';
     renderNav(); renderTicket(); renderWorkspace();
     ['#ticket', '#work'].forEach((sel) => { const el = $(sel); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); });
@@ -2044,8 +3316,9 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       toast(`No ${E.SKILLS[focus]} tickets available right now.`); focus = null;
     }
     if (!S.inbox.length) fillInbox();
-    const sameRoom = room ? S.inbox.filter((s) => s.room === room) : [];
-    const pool = sameRoom.length ? sameRoom : S.inbox;
+    const vis = visible();
+    const sameRoom = room ? vis.filter((s) => s.room === room) : [];
+    const pool = sameRoom.length ? sameRoom : vis;
     const weak = weakSkills();
     const pick = pool.find((s) => weak.includes(s.skill)) || pool[0];
     if (pick) openSpec(pick); else renderMap();
@@ -2059,14 +3332,14 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
         <section class="panel work" id="work"></section>
         <section class="panel schema" id="schema"></section>
       </div>`;
-    renderSchema();
   }
+  const homeLabel = () => (S.ctx === 'hospital' ? 'Department map' : S.ctx === 'mixed' ? 'All datasets' : `${ctxName(S.ctx)} home`);
   function renderNav() {
-    const here = S.inbox.filter((s) => s.room === ticket.room && s.id !== ticket.spec.id).length;
-    $('#nav').innerHTML = `<button class="btn quiet back" type="button" id="bMap">← Department map</button>
-      <span class="crumb-room" style="${roomStyle(ticket.room)}"><span class="room-dot"></span>${ROOM_LABEL[ticket.room]}</span>
+    const here = visible().filter((s) => s.room === ticket.room && s.id !== ticket.spec.id).length;
+    $('#nav').innerHTML = `<button class="btn quiet back" type="button" id="bMap">← ${homeLabel()}</button>
+      <span class="crumb-room" style="${roomStyle(ticket.room)}"><span class="room-dot"></span>${ticket.ctx !== 'hospital' ? esc(E.CTX[ticket.ctx].short) + ' · ' : ''}${areaLabel(ticket.room)}</span>
       ${focus ? `<span class="focus-pill">Practicing ${esc(E.SKILLS[focus])}<button type="button" id="bStopFocus">Stop</button></span>`
-        : `<span class="muted">${here ? `${here} more open here` : 'Last open ticket in this room'} · ${S.inbox.length} open total</span>`}
+        : `<span class="muted">${here ? `${here} more open here` : 'Last open ticket here'} · ${visible().length} open total</span>`}
       <button class="btn quiet nav-stats" type="button" id="bStats2">Your stats</button>`;
     $('#bMap').onclick = () => { focus = null; renderMap(); };
     $('#bStats2').onclick = () => { focus = null; renderStats(); };
@@ -2074,11 +3347,16 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
   }
 
   function renderSchema() {
-    const order = ['machines', 'qc_tests', 'exams', 'protocols', 'staff'];
-    $('#schema').innerHTML = `<h2 class="panel-title">Database <small>click a column to insert it</small></h2>` + order.map((t, i) => `
+    const def = E.CTX[curCtx], order = def.tableOrder, cold = ticket && ticket.cold;
+    $('#schema').innerHTML = `<h2 class="panel-title">${esc(def.name)} database <small>${cold ? 'cold schema: explore it yourself' : 'click a column to insert it'}</small></h2>` + order.map((t, i) => cold ? `
+      <details class="tbl" open>
+        <summary>${t}<span class="rows">${schema[t].n} rows</span></summary>
+        <p class="tbl-cold">Columns hidden. Try <code>SELECT * FROM ${t} LIMIT 5;</code> or <code>PRAGMA table_info(${t});</code></p>
+        <div class="cols"><button class="col-btn" type="button" data-ins="${t}">${t}</button><button class="col-btn" type="button" data-peek="${t}">preview</button></div>
+      </details>` : `
       <details class="tbl" ${i < 2 ? 'open' : ''}>
         <summary>${t}<span class="rows">${schema[t].n} rows</span></summary>
-        <p class="tbl-note">${esc(E.TABLE_NOTES[t])}</p>
+        <p class="tbl-note">${esc(def.notes[t] || '')}</p>
         <div class="cols">${schema[t].cols.map((c) => `<button class="col-btn" type="button" data-ins="${c.name}">${c.name}<i>${c.type.toLowerCase()}</i></button>`).join('')}
           <button class="col-btn" type="button" data-peek="${t}">preview</button></div>
       </details>`).join('');
@@ -2094,10 +3372,10 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     el.setAttribute('style', roomStyle(t.room));
     el.classList.remove('stamped');
     const s = t.sender;
-    const roleTxt = s.role === 'Technologist' ? `${ROOM_LABEL[s.modality] || s.modality} technologist` : s.role.toLowerCase();
+    const roleTxt = s.role === 'Technologist' ? `${areaLabel(s.modality)} technologist` : /^[A-Z]{2,}/.test(s.role) ? s.role : s.role.toLowerCase();
     let extra = '';
     if (t.type === 'match') {
-      const uses = Object.entries(t.uses || {}).map(([tb, cols]) => `<span class="use"><b>${tb}</b>${cols.length ? ' ' + cols.map(esc).join(', ') : ''}</span>`).join('');
+      const uses = t.cold ? '<span class="use">Hidden for this cold-schema ticket</span>' : Object.entries(t.uses || {}).map(([tb, cols]) => `<span class="use"><b>${tb}</b>${cols.length ? ' ' + cols.map(esc).join(', ') : ''}</span>`).join('');
       const anyCalc = (t.headers || []).some((h) => h.calc);
       extra = `<div class="answer-box"><span class="label">What it shows</span><p class="shows">${esc(t.prompt)}</p></div>
         <div class="answer-box"><span class="label">Target result · ${t.expected.rows.length} row${t.expected.rows.length === 1 ? '' : 's'}${t.ordered ? ' · order matters' : ''}</span>${tableHTML(t.headers || t.expected.columns, t.expected.rows)}
@@ -2106,20 +3384,22 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
     }
     if ((t.type === 'write' || t.type === 'fix') && t.headers) extra = colsBox(t);
     if (t.type === 'fix') extra += `<div class="from">The query is loaded in the editor. Run it, find the bug, fix it.</div>`;
+    if (t.cold) extra = `<div class="cold-note"><b>Cold schema.</b> The table guide only shows table names this time, like a database you've never seen. Explore first with <code>SELECT * FROM table LIMIT 5;</code></div>` + extra;
     if (t.type === 'predict') extra = `<div class="answer-box"><span class="label">Table: sample</span>${tableHTML(t.sample.columns, t.sample.rows)}</div><div class="answer-box"><span class="label">Query</span><pre class="code">${esc(t.query)}</pre></div>`;
     const promptTxt = t.type === 'fix' ? `I tried to answer this and my query isn't right: "${esc(t.prompt)}"`
       : t.type === 'match' ? `Write a query that produces exactly this table. ${t.ordered ? 'Row order matters.' : 'Row order doesn\'t matter.'}`
       : esc(t.prompt);
     el.innerHTML = `
       <div class="ticket-band">
-        <span class="room-name"><span class="room-dot"></span>${ROOM_LABEL[t.room] || t.room}</span>
-        <span class="chips"><span class="chip type">${TYPE_LABEL[t.type]}</span><span class="chip">Tier ${t.template.tier}</span><span class="chip">${E.SKILLS[t.template.skill]}</span></span>
+        <span class="room-name"><span class="room-dot"></span>${areaLabel(t.room)}</span>
+        <span class="chips"><span class="chip type">${TYPE_LABEL[t.type]}</span>${t.cold ? '<span class="chip cold">Cold schema</span>' : ''}<span class="chip">Tier ${t.template.tier}</span><span class="chip">${E.SKILLS[t.template.skill]}</span></span>
       </div>
       <div class="ticket-body">
         <div class="from">From <b>${esc(s.name)}</b>, ${roleTxt}</div>
         <p class="prompt">${promptTxt}</p>
         ${extra}
         <div id="hintBox"></div>
+        <div id="walkBox"></div>
         <div id="solBox"></div>
         <div class="ticket-actions" id="tActions"></div>
       </div>
@@ -2150,12 +3430,45 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       return;
     }
     a.innerHTML = `
+      ${ticket.type !== 'predict' && !tk.walk ? '<button class="btn" type="button" id="bWalk">Walk me through it</button>' : ''}
       <button class="btn" type="button" id="bHint" ${tk.hinted ? 'hidden' : ''}>Hint</button>
       <button class="btn" type="button" id="bReveal">Show answer</button>
       <button class="btn quiet" type="button" id="bSkip">Skip</button>`;
+    if ($('#bWalk')) $('#bWalk').onclick = () => { tk.walk = 1; renderWalk(); renderTicketActions(); };
     $('#bHint').onclick = () => { tk.hinted = true; $('#hintBox').innerHTML = `<div class="hint"><b>Hint:</b> ${esc(ticket.hint)}</div>`; renderTicketActions(); };
     $('#bReveal').onclick = () => { tk.revealed = true; record(false); showSolution(); stamp('fail', 'Reviewed'); finishTicket(); renderTicketActions(); };
     $('#bSkip').onclick = () => { const room = ticket.room; S.inbox = S.inbox.filter((s) => s.id !== ticket.spec.id); arrive(); fillInbox(); nextSpec(room); };
+  }
+
+  function walkSteps() {
+    const p = ticket.plan, tables = Object.keys(p.tables), cold = ticket.cold;
+    const tagList = (arr) => arr.map((x) => `<span class="tag">${esc(x)}</span>`).join('');
+    const steps = [];
+    steps.push(['What does one row of the answer represent?', `${esc(p.grain[0].toUpperCase() + p.grain.slice(1))}. Your finished query should return <b style="display:inline;color:inherit;font-size:inherit">${p.rows} row${p.rows === 1 ? '' : 's'}</b>. Check that number every time you run it.`]);
+    steps.push(['Which tables and columns do you need?', tables.map((tb) => `<div><span class="tag">${esc(tb)}</span>${cold ? '' : ' ' + tagList(p.tables[tb])}</div>`).join('') + (cold ? '<div>Run <code>SELECT * FROM table LIMIT 5;</code> on each one to find the columns.</div>' : '')]);
+    steps.push(['How do the tables connect?', p.links.length ? p.links.map((l) => `<div><span class="tag">${esc(l)}</span></div>`).join('') + (p.links.length > 1 ? '<div>Each link is one JOIN ... ON line (or a condition inside a subquery).</div>' : '')
+      : tables.length > 1 ? 'Through their matching id columns. Look for a column ending in _id that points at another table\'s id.' : 'They don\'t need to. Everything is in one table.']);
+    steps.push(['Which tools does it need?', `<dl>${p.tools.map((x) => `<dt>${esc(x.name)}</dt><dd>${esc(x.why)}</dd>`).join('')}</dl>`]);
+    const has = (n) => p.tools.some((x) => x.name === n);
+    const order = [];
+    if (has('WITH (a CTE)')) order.push('Write the inner step first as a plain SELECT and run it. Then wrap it in WITH name AS ( ... ).');
+    order.push(`Start with <code>SELECT * FROM ${esc(tables[0] || 'the main table')}</code> and run it.`);
+    if (has('JOIN') || has('LEFT JOIN')) order.push('Add one JOIN at a time, running after each, so you see the rows multiply or stay put.');
+    if (has('WHERE')) order.push('Add the WHERE filters and check the row count drops the way you expect.');
+    if (has('GROUP BY')) order.push(`Add GROUP BY so you get ${esc(p.grain)}${has('HAVING') ? ', then HAVING to filter the groups' : ''}.`);
+    if (has('Subquery as a value') || has('IN (subquery)') || has('NOT IN (subquery)') || has('EXISTS') || has('NOT EXISTS')) order.push('Write and run the subquery on its own first, then put it in parentheses.');
+    if (has('Window function')) order.push('Add the window function last, once the rows underneath are right.');
+    order.push('Replace * with exactly the columns the ticket asks for.');
+    if (has('ORDER BY')) order.push('Finish with ORDER BY (and LIMIT if needed).');
+    steps.push(['Build it in this order', `<ol style="padding-left:18px;gap:4px">${order.map((x) => `<li style="font-size:.86rem">${x}</li>`).join('')}</ol>`]);
+    return steps;
+  }
+  function renderWalk() {
+    const steps = walkSteps(), n = Math.min(tk.walk, steps.length);
+    $('#walkBox').innerHTML = `<div class="walk"><span class="walk-title">Walkthrough · step ${n} of ${steps.length}</span>
+      <ol>${steps.slice(0, n).map(([h, b], i) => `<li class="${i === n - 1 ? 'new' : ''}"><b>${h}</b>${b}</li>`).join('')}</ol>
+      ${n < steps.length && !tk.solved && !tk.revealed ? '<div class="walk-actions"><button class="btn small" type="button" id="bWalkNext">Next step</button></div>' : ''}</div>`;
+    if ($('#bWalkNext')) $('#bWalkNext').onclick = () => { tk.walk++; renderWalk(); };
   }
 
   function showSolution(label = 'One correct answer') {
@@ -2202,7 +3515,7 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
       </div>
       <div id="status"></div>
       <div class="results" id="results"><div class="empty-res">Run your query to see results here.</div></div>`;
-    const hintTables = {}; Object.entries(schema).forEach(([k, v]) => { hintTables[k] = v.cols.map((c) => c.name); });
+    const hintTables = {}; Object.entries(schema).forEach(([k, v]) => { hintTables[k] = t.cold ? [] : v.cols.map((c) => c.name); });
     cm = CodeMirror.fromTextArea($('#ed'), {
       mode: 'text/x-sqlite', theme: 'shift', lineNumbers: true, indentUnit: 2, tabSize: 2, lineWrapping: true,
       hintOptions: { tables: hintTables, completeSingle: false },
@@ -2258,19 +3571,29 @@ CREATE TABLE exams (id INTEGER PRIMARY KEY, machine_id INTEGER, protocol_id INTE
 
   // ---------- controls ----------
   $('#btnTiers').onclick = () => { if (SQL) { focus = null; renderTiers(); } };
+  $('#dataset').value = S.ctx;
+  $('#dataset').onchange = (e) => {
+    S.ctx = e.target.value; focus = null; save();
+    if (!SQL) return;
+    activeCtxs().forEach(dbFor); fillInbox(); renderMap();
+    toast(S.ctx === 'mixed' ? 'Mixed: tickets from every dataset.' : `Switched to ${ctxName(S.ctx)}.`);
+  };
   $('#tierMode').onchange = (e) => { S.tierMode = e.target.value; S.inbox = []; save(); updateStats(); if (SQL) { fillInbox(); renderMap(); } };
   let confirmTimer = null;
   $('#btnHospital').onclick = (e) => {
     const b = e.currentTarget;
-    if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = 'Click again to confirm'; clearTimeout(confirmTimer); confirmTimer = setTimeout(() => { delete b.dataset.confirm; b.textContent = 'New hospital'; }, 3000); return; }
-    delete b.dataset.confirm; b.textContent = 'New hospital';
-    S.seed = Math.floor(Math.random() * 1e9); save(); loadHospital(); fillInbox(); renderMap(); toast('New hospital loaded. Same skills, new data.');
+    if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = 'Click again to confirm'; clearTimeout(confirmTimer); confirmTimer = setTimeout(() => { delete b.dataset.confirm; b.textContent = 'New data'; }, 3000); return; }
+    delete b.dataset.confirm; b.textContent = 'New data';
+    activeCtxs().forEach((id) => { S.seeds[id] = newSeed(); });
+    if (S.seeds.hospital) S.seed = S.seeds.hospital;
+    save(); activeCtxs().forEach(dbFor); fillInbox(); renderMap();
+    toast(`New ${S.ctx === 'mixed' ? 'data for every dataset' : ctxName(S.ctx) + ' data'} loaded. Same skills, new rows.`);
   };
 
   // ---------- boot ----------
   updateStats();
   if (!window.initSqlJs || !window.CodeMirror) { $('#loading').innerHTML = '<div>The SQL engine didn\'t load. Check your connection and reload the page.</div>'; return; }
-  initSqlJs().then((lib) => { SQL = lib; loadHospital(); fillInbox(); renderMap(); })
+  initSqlJs().then((lib) => { SQL = lib; activeCtxs().forEach(dbFor); useCtx(activeCtxs()[0]); fillInbox(); renderMap(); })
     .catch((e) => { $('#loading').innerHTML = `<div>The SQL engine didn't start: ${esc(e.message || e)}</div>`; });
 })();
 
